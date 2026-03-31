@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cargoco.mapper.OrderInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.cargoco.entity.OrderInfo">
+        <id column="id" property="id"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="product_id" property="productId"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="buyer_id" property="buyerId"/>
+        <result column="address_id" property="addressId"/>
+        <result column="price" property="price"/>
+        <result column="trade_mode" property="tradeMode"/>
+        <result column="order_status" property="orderStatus"/>
+        <result column="pay_time" property="payTime"/>
+        <result column="ship_time" property="shipTime"/>
+        <result column="receive_time" property="receiveTime"/>
+        <result column="cancel_time" property="cancelTime"/>
+        <result column="cancel_reason" property="cancelReason"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <resultMap id="DetailResultMap" type="com.cargoco.entity.OrderInfo" extends="BaseResultMap">
+        <result column="product_title" property="productTitle"/>
+        <result column="product_cover" property="productCover"/>
+        <result column="seller_nickname" property="sellerNickname"/>
+        <result column="seller_avatar" property="sellerAvatar"/>
+        <result column="buyer_nickname" property="buyerNickname"/>
+        <result column="buyer_avatar" property="buyerAvatar"/>
+        <result column="receiver_name" property="receiverName"/>
+        <result column="receiver_phone" property="receiverPhone"/>
+        <result column="full_address" property="fullAddress"/>
+    </resultMap>
+
+    <sql id="Detail_Select">
+        SELECT o.*,
+               p.title AS product_title,
+               (SELECT pi.image_url FROM product_image pi WHERE pi.product_id = p.id AND pi.is_cover = 1 LIMIT 1) AS product_cover,
+               su.nickname AS seller_nickname, su.avatar AS seller_avatar,
+               bu.nickname AS buyer_nickname, bu.avatar AS buyer_avatar,
+               a.receiver_name, a.receiver_phone,
+               CONCAT(a.province, a.city, IFNULL(a.district,''), a.detail_address) AS full_address
+        FROM order_info o
+        LEFT JOIN product p ON o.product_id = p.id
+        LEFT JOIN `user` su ON o.seller_id = su.id
+        LEFT JOIN `user` bu ON o.buyer_id = bu.id
+        LEFT JOIN user_address a ON o.address_id = a.id
+    </sql>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM order_info WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="findByOrderNo" resultMap="BaseResultMap">
+        SELECT * FROM order_info WHERE order_no = #{orderNo} AND deleted = 0
+    </select>
+
+    <select id="findDetailById" resultMap="DetailResultMap">
+        <include refid="Detail_Select"/>
+        WHERE o.id = #{id} AND o.deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO order_info (order_no, product_id, seller_id, buyer_id, address_id, price, trade_mode, order_status, remark)
+        VALUES (#{orderNo}, #{productId}, #{sellerId}, #{buyerId}, #{addressId}, #{price}, #{tradeMode}, #{orderStatus}, #{remark})
+    </insert>
+
+    <update id="update">
+        UPDATE order_info
+        <set>
+            <if test="orderStatus != null">order_status = #{orderStatus},</if>
+            <if test="payTime != null">pay_time = #{payTime},</if>
+            <if test="shipTime != null">ship_time = #{shipTime},</if>
+            <if test="receiveTime != null">receive_time = #{receiveTime},</if>
+            <if test="cancelTime != null">cancel_time = #{cancelTime},</if>
+            <if test="cancelReason != null">cancel_reason = #{cancelReason},</if>
+            <if test="addressId != null">address_id = #{addressId},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateStatus">
+        UPDATE order_info SET order_status = #{orderStatus} WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="findByBuyerId" resultMap="DetailResultMap">
+        <include refid="Detail_Select"/>
+        WHERE o.buyer_id = #{buyerId} AND o.deleted = 0
+        <if test="orderStatus != null">AND o.order_status = #{orderStatus}</if>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="findBySellerId" resultMap="DetailResultMap">
+        <include refid="Detail_Select"/>
+        WHERE o.seller_id = #{sellerId} AND o.deleted = 0
+        <if test="orderStatus != null">AND o.order_status = #{orderStatus}</if>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="findAll" resultMap="DetailResultMap">
+        <include refid="Detail_Select"/>
+        WHERE o.deleted = 0
+        <if test="orderStatus != null">AND o.order_status = #{orderStatus}</if>
+        <if test="keyword != null and keyword != ''">
+            AND (o.order_no LIKE CONCAT('%', #{keyword}, '%') OR p.title LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="countAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM order_info WHERE deleted = 0
+    </select>
+
+    <select id="countByStatus" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM order_info WHERE deleted = 0 AND order_status = #{orderStatus}
+    </select>
+</mapper>

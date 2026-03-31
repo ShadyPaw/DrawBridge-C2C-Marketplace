@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cargoco.mapper.ProductMapper">
+
+    <resultMap id="BaseResultMap" type="com.cargoco.entity.Product">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="original_price" property="originalPrice"/>
+        <result column="price" property="price"/>
+        <result column="quality" property="quality"/>
+        <result column="location" property="location"/>
+        <result column="trade_mode" property="tradeMode"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="favorite_count" property="favoriteCount"/>
+        <result column="product_status" property="productStatus"/>
+        <result column="audit_status" property="auditStatus"/>
+        <result column="audit_remark" property="auditRemark"/>
+        <result column="audit_time" property="auditTime"/>
+        <result column="audit_user_id" property="auditUserId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <resultMap id="DetailResultMap" type="com.cargoco.entity.Product" extends="BaseResultMap">
+        <result column="seller_nickname" property="sellerNickname"/>
+        <result column="seller_avatar" property="sellerAvatar"/>
+        <result column="seller_credit_score" property="sellerCreditScore"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="cover_image" property="coverImage"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        p.id, p.user_id, p.category_id, p.title, p.description, p.original_price, p.price,
+        p.quality, p.location, p.trade_mode, p.view_count, p.favorite_count,
+        p.product_status, p.audit_status, p.audit_remark, p.audit_time, p.audit_user_id,
+        p.create_time, p.update_time, p.deleted
+    </sql>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM product p WHERE p.id = #{id} AND p.deleted = 0
+    </select>
+
+    <select id="findDetailById" resultMap="DetailResultMap">
+        SELECT <include refid="Base_Column_List"/>,
+               u.nickname AS seller_nickname, u.avatar AS seller_avatar, u.credit_score AS seller_credit_score,
+               c.name AS category_name,
+               (SELECT pi.image_url FROM product_image pi WHERE pi.product_id = p.id AND pi.is_cover = 1 LIMIT 1) AS cover_image
+        FROM product p
+        LEFT JOIN `user` u ON p.user_id = u.id
+        LEFT JOIN category c ON p.category_id = c.id
+        WHERE p.id = #{id} AND p.deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO product (user_id, category_id, title, description, original_price, price, quality, location, trade_mode, product_status, audit_status)
+        VALUES (#{userId}, #{categoryId}, #{title}, #{description}, #{originalPrice}, #{price}, #{quality}, #{location}, #{tradeMode}, #{productStatus}, #{auditStatus})
+    </insert>
+
+    <update id="update">
+        UPDATE product
+        <set>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="originalPrice != null">original_price = #{originalPrice},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="quality != null">quality = #{quality},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="tradeMode != null">trade_mode = #{tradeMode},</if>
+            <if test="productStatus != null">product_status = #{productStatus},</if>
+            <if test="auditStatus != null">audit_status = #{auditStatus},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE product SET deleted = 1 WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE product SET product_status = #{productStatus} WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateAudit">
+        UPDATE product SET audit_status = #{auditStatus}, audit_remark = #{auditRemark},
+        audit_user_id = #{auditUserId}, audit_time = NOW() WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="incrementViewCount">
+        UPDATE product SET view_count = view_count + 1 WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateFavoriteCount">
+        UPDATE product SET favorite_count = favorite_count + #{delta} WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="findList" resultMap="DetailResultMap">
+        SELECT <include refid="Base_Column_List"/>,
+               u.nickname AS seller_nickname, u.avatar AS seller_avatar, u.credit_score AS seller_credit_score,
+               c.name AS category_name,
+               (SELECT pi.image_url FROM product_image pi WHERE pi.product_id = p.id AND pi.is_cover = 1 LIMIT 1) AS cover_image
+        FROM product p
+        LEFT JOIN `user` u ON p.user_id = u.id
+        LEFT JOIN category c ON p.category_id = c.id
+        WHERE p.deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (p.title LIKE CONCAT('%', #{keyword}, '%') OR p.description LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="categoryId != null">AND p.category_id = #{categoryId}</if>
+        <if test="productStatus != null">AND p.product_status = #{productStatus}</if>
+        <if test="auditStatus != null">AND p.audit_status = #{auditStatus}</if>
+        <if test="userId != null">AND p.user_id = #{userId}</if>
+        <if test="minPrice != null">AND p.price &gt;= #{minPrice}</if>
+        <if test="maxPrice != null">AND p.price &lt;= #{maxPrice}</if>
+        <if test="quality != null">AND p.quality = #{quality}</if>
+        <choose>
+            <when test="orderBy == 'price_asc'">ORDER BY p.price ASC</when>
+            <when test="orderBy == 'price_desc'">ORDER BY p.price DESC</when>
+            <when test="orderBy == 'view'">ORDER BY p.view_count DESC</when>
+            <otherwise>ORDER BY p.create_time DESC</otherwise>
+        </choose>
+    </select>
+
+    <select id="findByUserId" resultMap="DetailResultMap">
+        SELECT <include refid="Base_Column_List"/>,
+               u.nickname AS seller_nickname, u.avatar AS seller_avatar, u.credit_score AS seller_credit_score,
+               c.name AS category_name,
+               (SELECT pi.image_url FROM product_image pi WHERE pi.product_id = p.id AND pi.is_cover = 1 LIMIT 1) AS cover_image
+        FROM product p
+        LEFT JOIN `user` u ON p.user_id = u.id
+        LEFT JOIN category c ON p.category_id = c.id
+        WHERE p.user_id = #{userId} AND p.deleted = 0
+        ORDER BY p.create_time DESC
+    </select>
+
+    <select id="countAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM product WHERE deleted = 0
+    </select>
+
+    <select id="countByStatus" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM product WHERE deleted = 0 AND audit_status = #{auditStatus}
+    </select>
+</mapper>

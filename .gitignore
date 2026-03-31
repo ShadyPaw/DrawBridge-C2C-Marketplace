@@ -1,0 +1,28 @@
+# === Backend ===
+backend/target/
+backend/bin/
+backend/.mvn/
+backend/*.iml
+backend/.idea/
+
+# === Frontend ===
+frontend/node_modules/
+frontend/dist/
+
+# === Uploads ===
+uploads/
+
+# === IDE ===
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Logs ===
+*.log

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cargoco.mapper.UserAddressMapper">
+
+    <resultMap id="BaseResultMap" type="com.cargoco.entity.UserAddress">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="receiver_name" property="receiverName"/>
+        <result column="receiver_phone" property="receiverPhone"/>
+        <result column="province" property="province"/>
+        <result column="city" property="city"/>
+        <result column="district" property="district"/>
+        <result column="detail_address" property="detailAddress"/>
+        <result column="is_default" property="isDefault"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM user_address WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="findByUserId" resultMap="BaseResultMap">
+        SELECT * FROM user_address WHERE user_id = #{userId} AND deleted = 0 ORDER BY is_default DESC, create_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_address (user_id, receiver_name, receiver_phone, province, city, district, detail_address, is_default)
+        VALUES (#{userId}, #{receiverName}, #{receiverPhone}, #{province}, #{city}, #{district}, #{detailAddress}, #{isDefault})
+    </insert>
+
+    <update id="update">
+        UPDATE user_address
+        <set>
+            <if test="receiverName != null">receiver_name = #{receiverName},</if>
+            <if test="receiverPhone != null">receiver_phone = #{receiverPhone},</if>
+            <if test="province != null">province = #{province},</if>
+            <if test="city != null">city = #{city},</if>
+            <if test="district != null">district = #{district},</if>
+            <if test="detailAddress != null">detail_address = #{detailAddress},</if>
+            <if test="isDefault != null">is_default = #{isDefault},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE user_address SET deleted = 1 WHERE id = #{id}
+    </update>
+
+    <update id="clearDefault">
+        UPDATE user_address SET is_default = 0 WHERE user_id = #{userId} AND deleted = 0
+    </update>
+</mapper>

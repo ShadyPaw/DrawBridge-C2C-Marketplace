@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cargoco.mapper.ReportMapper">
+
+    <resultMap id="BaseResultMap" type="com.cargoco.entity.Report">
+        <id column="id" property="id"/>
+        <result column="reporter_id" property="reporterId"/>
+        <result column="target_type" property="targetType"/>
+        <result column="target_id" property="targetId"/>
+        <result column="reason_type" property="reasonType"/>
+        <result column="reason_detail" property="reasonDetail"/>
+        <result column="evidence_urls" property="evidenceUrls"/>
+        <result column="handle_status" property="handleStatus"/>
+        <result column="handle_result" property="handleResult"/>
+        <result column="handle_user_id" property="handleUserId"/>
+        <result column="handle_time" property="handleTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="deleted" property="deleted"/>
+        <result column="reporter_nickname" property="reporterNickname"/>
+        <result column="handle_user_nickname" property="handleUserNickname"/>
+    </resultMap>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT r.*, u.nickname AS reporter_nickname, hu.nickname AS handle_user_nickname
+        FROM report r
+        LEFT JOIN `user` u ON r.reporter_id = u.id
+        LEFT JOIN `user` hu ON r.handle_user_id = hu.id
+        WHERE r.id = #{id} AND r.deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO report (reporter_id, target_type, target_id, reason_type, reason_detail, evidence_urls)
+        VALUES (#{reporterId}, #{targetType}, #{targetId}, #{reasonType}, #{reasonDetail}, #{evidenceUrls})
+    </insert>
+
+    <update id="update">
+        UPDATE report
+        <set>
+            <if test="handleStatus != null">handle_status = #{handleStatus},</if>
+            <if test="handleResult != null">handle_result = #{handleResult},</if>
+            <if test="handleUserId != null">handle_user_id = #{handleUserId},</if>
+            <if test="handleTime != null">handle_time = #{handleTime},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="findList" resultMap="BaseResultMap">
+        SELECT r.*, u.nickname AS reporter_nickname, hu.nickname AS handle_user_nickname
+        FROM report r
+        LEFT JOIN `user` u ON r.reporter_id = u.id
+        LEFT JOIN `user` hu ON r.handle_user_id = hu.id
+        WHERE r.deleted = 0
+        <if test="handleStatus != null">AND r.handle_status = #{handleStatus}</if>
+        <if test="targetType != null">AND r.target_type = #{targetType}</if>
+        ORDER BY r.create_time DESC
+    </select>
+
+    <select id="countByStatus" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM report WHERE deleted = 0 AND handle_status = #{handleStatus}
+    </select>
+</mapper>

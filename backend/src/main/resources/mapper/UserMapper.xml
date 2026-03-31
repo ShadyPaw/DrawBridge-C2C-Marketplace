@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cargoco.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.cargoco.entity.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="nickname" property="nickname"/>
+        <result column="avatar" property="avatar"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="gender" property="gender"/>
+        <result column="real_name" property="realName"/>
+        <result column="id_card" property="idCard"/>
+        <result column="credit_score" property="creditScore"/>
+        <result column="user_level" property="userLevel"/>
+        <result column="status" property="status"/>
+        <result column="role" property="role"/>
+        <result column="last_login_time" property="lastLoginTime"/>
+        <result column="last_login_ip" property="lastLoginIp"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, username, password, nickname, avatar, phone, email, gender, real_name, id_card,
+        credit_score, user_level, status, role, last_login_time, last_login_ip, create_time, update_time, deleted
+    </sql>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM `user` WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="findByUsername" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM `user` WHERE username = #{username} AND deleted = 0
+    </select>
+
+    <select id="findByPhone" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM `user` WHERE phone = #{phone} AND deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `user` (username, password, nickname, avatar, phone, email, gender, status, role)
+        VALUES (#{username}, #{password}, #{nickname}, #{avatar}, #{phone}, #{email}, #{gender}, #{status}, #{role})
+    </insert>
+
+    <update id="update">
+        UPDATE `user`
+        <set>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="idCard != null">id_card = #{idCard},</if>
+            <if test="lastLoginTime != null">last_login_time = #{lastLoginTime},</if>
+            <if test="lastLoginIp != null">last_login_ip = #{lastLoginIp},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updatePassword">
+        UPDATE `user` SET password = #{password} WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateCreditScore">
+        UPDATE `user` SET credit_score = #{creditScore}, user_level = #{userLevel} WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateStatus">
+        UPDATE `user` SET status = #{status} WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE `user` SET deleted = 1 WHERE id = #{id}
+    </update>
+
+    <select id="findList" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM `user` WHERE deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (username LIKE CONCAT('%', #{keyword}, '%') OR nickname LIKE CONCAT('%', #{keyword}, '%') OR phone LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="status != null">AND status = #{status}</if>
+        <if test="role != null">AND role = #{role}</if>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM `user` WHERE deleted = 0 AND role = 0
+    </select>
+</mapper>
