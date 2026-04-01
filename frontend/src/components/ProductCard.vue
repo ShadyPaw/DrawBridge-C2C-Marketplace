@@ -7,25 +7,16 @@
       <span v-else-if="product.quality === 2" class="quality-tag near-new">几乎全新</span>
     </div>
     <div class="card-body">
-      <h3 class="title">{{ product.title }}</h3>
-      <div class="price-row">
-        <span class="price">{{ product.price }}</span>
-        <span v-if="product.originalPrice" class="price-original">¥{{ product.originalPrice }}</span>
-      </div>
-      <div class="card-footer">
+      <h3 class="title product-title">{{ product.title }}</h3>
+      <div class="info-bottom">
+        <div class="price-box">
+          <span class="product-price price">{{ product.price }}</span>
+        </div>
         <div class="seller-info">
           <el-avatar :size="20" :src="product.sellerAvatar || undefined">
             {{ product.sellerNickname?.charAt(0) || '用' }}
           </el-avatar>
           <span class="seller-name">{{ product.sellerNickname || '用户' }}</span>
-        </div>
-        <div class="stats">
-          <span v-if="product.viewCount">
-            <el-icon><View /></el-icon>{{ product.viewCount }}
-          </span>
-          <span v-if="product.favoriteCount">
-            <el-icon><Star /></el-icon>{{ product.favoriteCount }}
-          </span>
         </div>
       </div>
     </div>
@@ -51,6 +42,10 @@ function goDetail() {
   cursor: pointer;
   overflow: hidden;
   transition: all 0.3s ease;
+  break-inside: avoid; /* 防止卡片在两列之间断开 */
+  margin-bottom: 20px;
+  display: inline-block;
+  width: 100%;
 }
 
 .product-card:hover {
@@ -61,17 +56,14 @@ function goDetail() {
 .card-image {
   position: relative;
   width: 100%;
-  padding-top: 100%;
   overflow: hidden;
   background: #f5f5f5;
+  border-radius: 16px 16px 0 0;
 }
 
 .card-image img {
-  position: absolute;
-  top: 0;
-  left: 0;
+  display: block;
   width: 100%;
-  height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
 }
@@ -110,29 +102,29 @@ function goDetail() {
 .quality-tag.near-new { background: var(--success-color); }
 
 .card-body {
-  padding: 12px;
+  padding: 12px 16px;
 }
 
 .title {
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.5;
   font-weight: 500;
-  color: var(--text-primary);
-  line-height: 1.4;
+  margin-bottom: 12px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin-bottom: 8px;
-  min-height: 39px;
+  color: var(--text-primary);
 }
 
-.price-row {
-  display: flex;
-  align-items: baseline;
-  margin-bottom: 8px;
+.product-price {
+  font-size: 22px !important;
+}
+.product-price::before {
+  font-size: 14px !important;
 }
 
-.card-footer {
+.info-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -151,18 +143,5 @@ function goDetail() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.stats {
-  display: flex;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--text-quaternary);
-}
-
-.stats span {
-  display: flex;
-  align-items: center;
-  gap: 2px;
 }
 </style>

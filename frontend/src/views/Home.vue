@@ -1,24 +1,13 @@
-<template>
+﻿<template>
   <div class="home-page">
-    <!-- 系统公告 -->
-    <section class="notice-section container" v-if="notices.length > 0">
-      <el-carousel height="44px" direction="vertical" :autoplay="true" indicator-position="none" class="notice-carousel card">
-        <el-carousel-item v-for="notice in notices" :key="notice.id">
-          <div class="notice-content">
-            <el-tag size="small" type="danger" effect="dark">系统公告</el-tag>
-            <span class="notice-title">{{ notice.title }}</span>
-            <span class="notice-time">{{ new Date(notice.createTime).toLocaleDateString() }}</span>
-          </div>
-        </el-carousel-item>
-      </el-carousel>
-    </section>
+
 
     <!-- 分类导航 -->
     <section class="category-section">
       <div class="container">
         <div class="category-bar">
           <div
-            v-for="cat in categories"
+            v-for="cat in displayCategories"
             :key="cat.id"
             class="category-item"
             :class="{ active: selectedCategory === cat.id }"
@@ -36,7 +25,7 @@
         <div class="section-header">
           <h2>
             <el-icon><Goods /></el-icon>
-            {{ selectedCategory ? '分类商品' : '最新发布' }}
+            {{ sectionTitle }}
           </h2>
           <div class="sort-options">
             <el-radio-group v-model="sortBy" size="small" @change="loadProducts">
@@ -56,7 +45,7 @@
           <el-empty description="暂无商品，快去发布第一件闲置吧~" />
         </div>
 
-        <div v-else class="product-grid">
+        <div v-else class="product-list-container">
           <ProductCard v-for="item in products" :key="item.id" :product="item" />
         </div>
 
@@ -76,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { productApi, categoryApi, noticeApi } from '../api'
 import ProductCard from '../components/ProductCard.vue'
 
@@ -90,19 +79,33 @@ const pageNum = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
 
+function normalizeCategoryName(name) {
+  return (name || '').replace(/市集$/u, '').replace(/商品$/u, '').trim()
+}
+
+const displayCategories = computed(() => {
+  return categories.value.map(cat => ({
+    ...cat,
+    name: cat.id === null ? cat.name : normalizeCategoryName(cat.name)
+  }))
+})
+
+const selectedCategoryName = computed(() => {
+  if (selectedCategory.value == null) return ''
+  return displayCategories.value.find(cat => cat.id === selectedCategory.value)?.name || ''
+})
+
+const sectionTitle = computed(() => {
+  return selectedCategoryName.value || '最新发布'
+})
+
 onMounted(() => {
   loadNotices()
   loadCategories()
   loadProducts()
 })
 
-async function loadNotices() {
-  try {
-    const res = await noticeApi.list()
-    // 只取最新的 5 条
-    notices.value = (res.data || []).slice(0, 5)
-  } catch (e) { console.error(e) }
-}
+async function loadNotices() {}
 
 async function loadCategories() {
   try {
@@ -151,6 +154,7 @@ function selectCategory(id) {
 .notice-carousel {
   border-radius: var(--radius-md);
   cursor: pointer;
+  background-color: var(--page-bg-color); /* 浅灰色底色 */
 }
 
 .notice-content {
@@ -177,40 +181,62 @@ function selectCategory(id) {
 
 .category-section {
   background: var(--bg-white);
-  padding: 16px 0;
+  padding: 12px 0 8px;
   margin-bottom: 24px;
-  box-shadow: var(--shadow-sm);
 }
 
 .category-bar {
   display: flex;
-  gap: 8px;
+  gap: 16px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding: 12px 0;
 }
 
 .category-bar::-webkit-scrollbar { height: 0; }
 
 .category-item {
   flex-shrink: 0;
-  padding: 8px 20px;
-  border-radius: 20px;
-  font-size: 14px;
-  color: var(--text-secondary);
+  padding: 8px 4px;
+  font-size: 15px;
+  color: #666;
   cursor: pointer;
   transition: all 0.2s;
-  background: var(--bg-color);
-}
-
-.category-item:hover {
-  color: var(--primary-color);
-  background: var(--primary-bg);
+  background: transparent;
+  position: relative;
 }
 
 .category-item.active {
-  color: #fff;
-  background: var(--primary-color);
+  color: #1C1C1E;
+  font-weight: bold;
 }
+
+.category-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #1C1C1E;
+  border-radius: 2px;
+}
+
+.category-item:hover {
+  color: #1C1C1E;
+}
+
+/* 1. 彻底抛弃死板的 Grid，使用响应式瀑布流/自适应网格 */
+.product-list-container {
+  column-count: 4; /* 桌面端4列，可视情况调整 */
+  column-gap: 20px; /* 列间距 */
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+@media (max-width: 1200px) { .product-list-container { column-count: 3; } }
+@media (max-width: 768px) { .product-list-container { column-count: 2; } }
+
+
 
 .section-header {
   display: flex;
@@ -225,7 +251,7 @@ function selectCategory(id) {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-primary);
+  color: var(--main-text-color);
 }
 
 .loading-wrap {
@@ -238,3 +264,5 @@ function selectCategory(id) {
   margin-top: 32px;
 }
 </style>
+
+

@@ -66,7 +66,7 @@
           <el-button v-if="!isOwner" size="large" round @click="goChat">
             <el-icon><ChatDotRound /></el-icon> 私聊卖家
           </el-button>
-          <el-button type="primary" size="large" round @click="buyNow" :disabled="product.productStatus !== 1 || isOwner">
+          <el-button type="primary" size="large" round @click="buyNow" :disabled="product.productStatus !== 1 || isOwner" class="buy-now-btn">
             {{ product.productStatus === 3 ? '已售出' : product.productStatus === 2 ? '已下架' : isOwner ? '自己的商品' : '立即购买' }}
           </el-button>
         </div>
@@ -274,6 +274,19 @@ function formatTime(time) {
 .seller-credit span { color: var(--primary-color); font-weight: 600; }
 .action-buttons { display: flex; gap: 12px; }
 .action-buttons .el-button { flex: 1; height: 48px; font-size: 16px; }
+.buy-now-btn {
+  background-color: var(--drawbridge-red) !important;
+  border-color: var(--drawbridge-red) !important;
+  color: #ffffff !important;
+}
+.buy-now-btn:hover {
+  background-color: #E33E41 !important;
+  border-color: #E33E41 !important;
+}
+.buy-now-btn.is-disabled {
+  background-color: #F7C6C7 !important;
+  border-color: #F7C6C7 !important;
+}
 .comments-section { background: var(--bg-white); border-radius: var(--radius-lg); padding: 24px; margin-top: 24px; box-shadow: var(--shadow-sm); }
 .comments-section h3 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
 .comment-input { display: flex; gap: 12px; margin-bottom: 20px; align-items: flex-end; }
