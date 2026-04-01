@@ -439,6 +439,13 @@ npm run dev
 - **防御连环死锁**：根治不填手机号注册空串强推 MySQL 后引发的崩溃级账户幽灵态“不存在”连环判错死锁，加入安全的数据脱水机制。
 - **UI 及会话修复**：剥离重构了前端 Websocekt 全局独立广播域解耦，修缮全局 css `.price` 货币符号重复显示故障，并联通后端展示聊天上下文的真实商品售价。
 
+- ### V1.5 (2026-04-02)
+优化了交易平台首页及顶栏的 UX（用户体验）： 采用了更清爽的顶部导航，支持分类名称动态显示，并扩大了集成搜索框的区域。
+新增右侧固定悬浮操作面板： 集成了发布、消息、反馈、支持以及返回顶部等功能。
+精简冗余入口： 移除了与悬浮面板功能重叠的顶部重复入口，为搜索栏腾出了更多空间。
+重构消息中心： 采用了更简洁的会话布局，优化了空白页状态（empty states），刷新了气泡样式，并对输入区域进行了精细化处理。
+修复消息悬浮角标逻辑： 现在仅在确实存在未读消息时，才会显示红点提示。
+更新顶栏滚动行为： 顶部搜索区域不再随页面滚动固定；同时，系统通知现在支持手动关闭。
 ---
 
 ## 开源协议
@@ -450,17 +457,3 @@ npm run dev
 > 📧 如有问题或建议，欢迎提 Issue 或 Pull Request！
 
 ---
-
-## Current Iteration
-
-- Current version: `V1.5.0`
-- Updated on: `2026-04-02`
-
-### V1.5 (2026-04-02)
-
-- Refined the marketplace home and header UX with a cleaner top navigation, dynamic category naming, and an expanded integrated search bar.
-- Added a fixed right-side floating action panel with publish, message, feedback, support, and back-to-top actions.
-- Removed duplicated top-level entry points that overlapped with the floating panel, giving more space back to search.
-- Redesigned the message center with a cleaner conversation layout, improved empty states, refreshed message bubbles, and a more polished input area.
-- Fixed the floating message badge logic so the red dot only appears when unread messages actually exist.
-- Updated header behavior so the top search area no longer stays fixed while scrolling, and system notices can now be dismissed manually.
