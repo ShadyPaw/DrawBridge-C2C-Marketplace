@@ -63,6 +63,9 @@
           <el-button @click="toggleFavorite" :icon="isFavorited ? 'StarFilled' : 'Star'" size="large" round>
             {{ isFavorited ? '已收藏' : '收藏' }}
           </el-button>
+          <el-button v-if="!isOwner" size="large" round @click="goChat">
+            <el-icon><ChatDotRound /></el-icon> 私聊卖家
+          </el-button>
           <el-button type="primary" size="large" round @click="buyNow" :disabled="product.productStatus !== 1 || isOwner">
             {{ product.productStatus === 3 ? '已售出' : product.productStatus === 2 ? '已下架' : isOwner ? '自己的商品' : '立即购买' }}
           </el-button>
@@ -197,6 +200,17 @@ async function toggleFavorite() {
     const res = await favoriteApi.toggle(route.params.id)
     isFavorited.value = res.data.isFavorited
   } catch (e) { /* handled */ }
+}
+
+function goChat() {
+  if (!userStore.isLoggedIn) { router.push('/login'); return }
+  router.push({
+    path: '/chat',
+    query: {
+      userId: product.value.userId,
+      productId: product.value.id
+    }
+  })
 }
 
 async function buyNow() {

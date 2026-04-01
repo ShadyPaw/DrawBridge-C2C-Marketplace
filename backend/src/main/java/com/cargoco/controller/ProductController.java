@@ -54,13 +54,14 @@ public class ProductController {
     public Result<PageResult<Product>> list(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long userId,
             @RequestParam(required = false) Integer quality,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false, defaultValue = "latest") String orderBy,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "20") Integer pageSize) {
-        PageResult<Product> result = productService.getList(keyword, categoryId, 1, 1, null, minPrice, maxPrice, quality, orderBy, pageNum, pageSize);
+        PageResult<Product> result = productService.getList(keyword, categoryId, 1, 1, userId, minPrice, maxPrice, quality, orderBy, pageNum, pageSize);
         return Result.success(result);
     }
 

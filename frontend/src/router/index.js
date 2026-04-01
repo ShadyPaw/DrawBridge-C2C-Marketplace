@@ -25,7 +25,8 @@ const routes = [
           { path: 'settings', name: 'MySettings', component: () => import('../views/my/MySettings.vue'), meta: { title: '账号设置' } },
         ]
       },
-      { path: 'order/:id', name: 'OrderDetail', component: () => import('../views/OrderDetail.vue'), meta: { title: '订单详情', requireAuth: true } }
+      { path: 'order/:id', name: 'OrderDetail', component: () => import('../views/OrderDetail.vue'), meta: { title: '订单详情', requireAuth: true } },
+      { path: 'chat', name: 'ChatRoom', component: () => import('../views/ChatRoom.vue'), meta: { title: '私信', requireAuth: true } },
     ]
   },
   { path: '/login', name: 'Login', component: () => import('../views/Login.vue'), meta: { title: '登录' } },

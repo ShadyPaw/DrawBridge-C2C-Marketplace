@@ -109,6 +109,15 @@ export const adminApi = {
   addCategory: (data) => request.post('/api/admin/category/add', data),
   updateCategory: (data) => request.put('/api/admin/category/update', data),
   deleteCategory: (id) => request.delete(`/api/admin/category/delete/${id}`),
+  initData: () => request.post('/api/admin/init-data'),
+}
+
+// ==================== 私聊接口 ====================
+export const chatApi = {
+  history: (params) => request.get('/api/chat/history', { params }),
+  contacts: () => request.get('/api/chat/contacts'),
+  unreadCount: () => request.get('/api/chat/unread'),
+  markRead: (senderId) => request.put('/api/chat/read', null, { params: { senderId } }),
 }
 
 // ==================== 地址接口 ====================

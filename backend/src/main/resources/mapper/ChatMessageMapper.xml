@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cargoco.mapper.ChatMessageMapper">
+
+    <resultMap id="BaseResultMap" type="com.cargoco.entity.ChatMessage">
+        <id column="id" property="id"/>
+        <result column="sender_id" property="senderId"/>
+        <result column="receiver_id" property="receiverId"/>
+        <result column="product_id" property="productId"/>
+        <result column="content" property="content"/>
+        <result column="is_read" property="isRead"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <resultMap id="DetailResultMap" type="com.cargoco.entity.ChatMessage" extends="BaseResultMap">
+        <result column="sender_nickname" property="senderNickname"/>
+        <result column="sender_avatar" property="senderAvatar"/>
+        <result column="receiver_nickname" property="receiverNickname"/>
+        <result column="receiver_avatar" property="receiverAvatar"/>
+        <result column="product_title" property="productTitle"/>
+        <result column="product_price" property="productPrice"/>
+        <result column="product_cover_image" property="productCoverImage"/>
+        <result column="unread_count" property="unreadCount"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO chat_message (sender_id, receiver_id, product_id, content, is_read)
+        VALUES (#{senderId}, #{receiverId}, #{productId}, #{content}, #{isRead})
+    </insert>
+
+    <!-- 查询两个用户之间的聊天记录 -->
+    <select id="findConversation" resultMap="DetailResultMap">
+        SELECT cm.*,
+               s.nickname AS sender_nickname, s.avatar AS sender_avatar,
+               r.nickname AS receiver_nickname, r.avatar AS receiver_avatar,
+               p.title AS product_title, p.price AS product_price,
+               (SELECT pi.image_url FROM product_image pi WHERE pi.product_id = cm.product_id AND pi.is_cover = 1 LIMIT 1) AS product_cover_image
+        FROM chat_message cm
+        LEFT JOIN `user` s ON cm.sender_id = s.id
+        LEFT JOIN `user` r ON cm.receiver_id = r.id
+        LEFT JOIN product p ON cm.product_id = p.id
+        WHERE ((cm.sender_id = #{userId1} AND cm.receiver_id = #{userId2})
+            OR (cm.sender_id = #{userId2} AND cm.receiver_id = #{userId1}))
+        <if test="productId != null">
+            AND cm.product_id = #{productId}
+        </if>
+        ORDER BY cm.create_time ASC
+    </select>
+
+    <!-- 最近联系人：每个会话取最新一条消息 -->
+    <select id="findRecentContacts" resultMap="DetailResultMap">
+        SELECT cm.*,
+               s.nickname AS sender_nickname, s.avatar AS sender_avatar,
+               r.nickname AS receiver_nickname, r.avatar AS receiver_avatar,
+               p.title AS product_title, p.price AS product_price,
+               (SELECT pi.image_url FROM product_image pi WHERE pi.product_id = cm.product_id AND pi.is_cover = 1 LIMIT 1) AS product_cover_image,
+               (SELECT COUNT(*) FROM chat_message ucm 
+                WHERE ucm.receiver_id = #{userId} 
+                  AND ucm.sender_id = IF(cm.sender_id = #{userId}, cm.receiver_id, cm.sender_id) 
+                  AND ucm.is_read = 0) AS unread_count
+        FROM chat_message cm
+        INNER JOIN (
+            SELECT MAX(id) AS max_id
+            FROM chat_message
+            WHERE sender_id = #{userId} OR receiver_id = #{userId}
+            GROUP BY
+                LEAST(sender_id, receiver_id),
+                GREATEST(sender_id, receiver_id)
+        ) latest ON cm.id = latest.max_id
+        LEFT JOIN `user` s ON cm.sender_id = s.id
+        LEFT JOIN `user` r ON cm.receiver_id = r.id
+        LEFT JOIN product p ON cm.product_id = p.id
+        ORDER BY cm.create_time DESC
+    </select>
+
+    <update id="markAsRead">
+        UPDATE chat_message SET is_read = 1
+        WHERE sender_id = #{senderId} AND receiver_id = #{receiverId} AND is_read = 0
+    </update>
+
+    <select id="countUnread" resultType="int">
+        SELECT COUNT(*) FROM chat_message WHERE receiver_id = #{userId} AND is_read = 0
+    </select>
+
+</mapper>

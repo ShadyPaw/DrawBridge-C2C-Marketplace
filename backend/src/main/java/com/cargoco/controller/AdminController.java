@@ -30,6 +30,15 @@ public class AdminController {
     private NoticeService noticeService;
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private DataInitService dataInitService;
+
+    // ==================== 数据初始化 ====================
+    @PostMapping("/init-data")
+    public Result<?> initData() {
+        dataInitService.initCommunityData();
+        return Result.success("社区生态数据初始化成功", null);
+    }
 
     // ==================== 统计概览 ====================
     @GetMapping("/dashboard")

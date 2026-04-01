@@ -42,8 +42,8 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO `user` (username, password, nickname, avatar, phone, email, gender, status, role)
-        VALUES (#{username}, #{password}, #{nickname}, #{avatar}, #{phone}, #{email}, #{gender}, #{status}, #{role})
+        INSERT INTO `user` (username, password, nickname, avatar, phone, email, gender, status, role, credit_score, user_level)
+        VALUES (#{username}, #{password}, #{nickname}, #{avatar}, #{phone}, #{email}, #{gender}, #{status}, #{role}, #{creditScore}, #{userLevel})
     </insert>
 
     <update id="update">

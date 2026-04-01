@@ -1,5 +1,18 @@
 <template>
   <div class="home-page">
+    <!-- 系统公告 -->
+    <section class="notice-section container" v-if="notices.length > 0">
+      <el-carousel height="44px" direction="vertical" :autoplay="true" indicator-position="none" class="notice-carousel card">
+        <el-carousel-item v-for="notice in notices" :key="notice.id">
+          <div class="notice-content">
+            <el-tag size="small" type="danger" effect="dark">系统公告</el-tag>
+            <span class="notice-title">{{ notice.title }}</span>
+            <span class="notice-time">{{ new Date(notice.createTime).toLocaleDateString() }}</span>
+          </div>
+        </el-carousel-item>
+      </el-carousel>
+    </section>
+
     <!-- 分类导航 -->
     <section class="category-section">
       <div class="container">
@@ -64,11 +77,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { productApi, categoryApi } from '../api'
+import { productApi, categoryApi, noticeApi } from '../api'
 import ProductCard from '../components/ProductCard.vue'
 
 const categories = ref([])
 const products = ref([])
+const notices = ref([])
 const selectedCategory = ref(null)
 const sortBy = ref('latest')
 const loading = ref(false)
@@ -77,9 +91,18 @@ const pageSize = ref(20)
 const total = ref(0)
 
 onMounted(() => {
+  loadNotices()
   loadCategories()
   loadProducts()
 })
+
+async function loadNotices() {
+  try {
+    const res = await noticeApi.list()
+    // 只取最新的 5 条
+    notices.value = (res.data || []).slice(0, 5)
+  } catch (e) { console.error(e) }
+}
 
 async function loadCategories() {
   try {
@@ -118,6 +141,38 @@ function selectCategory(id) {
 <style scoped>
 .home-page {
   padding-bottom: 40px;
+}
+
+/* 公告栏 */
+.notice-section {
+  padding-top: 16px;
+}
+
+.notice-carousel {
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.notice-content {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 20px;
+  gap: 12px;
+}
+
+.notice-title {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notice-time {
+  font-size: 12px;
+  color: var(--text-tertiary);
 }
 
 .category-section {

@@ -29,7 +29,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public Product publish(Product product, List<String> imageUrls) {
         product.setProductStatus(1); // 在售
-        product.setAuditStatus(0);   // 待审核
+        product.setAuditStatus(1);   // 临时逻辑：直接发布成功，跳过人工审核
         product.setViewCount(0);
         product.setFavoriteCount(0);
         productMapper.insert(product);
@@ -67,6 +67,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product update(Product product, List<String> imageUrls) {
+        product.setAuditStatus(1); // 临时逻辑：编辑后直接跳过审核
         productMapper.update(product);
         // 如果传了新图片，更新图片
         if (imageUrls != null && !imageUrls.isEmpty()) {
@@ -100,6 +101,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void updateStatus(Long id, Integer status) {
         productMapper.updateStatus(id, status);
+        if (status == 1) {
+            // 临时逻辑：重新上架时直接跳过审核
+            productMapper.updateAudit(id, 1, "重新上架自动通过", null);
+        }
     }
 
     @Override

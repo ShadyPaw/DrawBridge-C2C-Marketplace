@@ -121,7 +121,7 @@
             <when test="orderBy == 'price_asc'">ORDER BY p.price ASC</when>
             <when test="orderBy == 'price_desc'">ORDER BY p.price DESC</when>
             <when test="orderBy == 'view'">ORDER BY p.view_count DESC</when>
-            <otherwise>ORDER BY p.create_time DESC</otherwise>
+            <otherwise>ORDER BY p.id DESC</otherwise>
         </choose>
     </select>
 
@@ -134,7 +134,7 @@
         LEFT JOIN `user` u ON p.user_id = u.id
         LEFT JOIN category c ON p.category_id = c.id
         WHERE p.user_id = #{userId} AND p.deleted = 0
-        ORDER BY p.create_time DESC
+        ORDER BY p.id DESC
     </select>
 
     <select id="countAll" resultType="java.lang.Long">

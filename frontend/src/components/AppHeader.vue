@@ -32,6 +32,13 @@
         </router-link>
 
         <template v-if="userStore.isLoggedIn">
+          <router-link to="/chat" class="action-link">
+            <el-badge :value="unreadTotal" :hidden="unreadTotal === 0">
+              <el-icon :size="22"><ChatDotRound /></el-icon>
+            </el-badge>
+            <span>消息</span>
+          </router-link>
+
           <router-link to="/my/orders" class="action-link">
             <el-badge :value="0" :hidden="true">
               <el-icon :size="22"><Document /></el-icon>
@@ -86,15 +93,43 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
+import { chatApi } from '../api'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const userStore = useUserStore()
 const searchKeyword = ref('')
+const unreadTotal = ref(0)
+let timer = null
+
+onMounted(() => {
+  if (userStore.isLoggedIn) {
+    fetchUnread()
+    timer = setInterval(fetchUnread, 30000) // 轮询最新消息条数
+    userStore.connectWs()
+    window.addEventListener('chat-read', fetchUnread)
+    window.addEventListener('new-chat-message', fetchUnread)
+  }
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+  window.removeEventListener('chat-read', fetchUnread)
+  window.removeEventListener('new-chat-message', fetchUnread)
+  userStore.disconnectWs()
+})
+
+async function fetchUnread() {
+  if (!userStore.isLoggedIn) return
+  try {
+    const res = await chatApi.unreadCount()
+    unreadTotal.value = res.data || 0
+  } catch(e) {}
+}
 
 function doSearch() {
   if (searchKeyword.value.trim()) {

@@ -392,3 +392,24 @@ INSERT INTO `category` (`parent_id`, `name`, `sort_order`, `status`) VALUES
 -- 插入系统公告示例
 INSERT INTO `notice` (`title`, `content`, `type`, `target_user_id`, `status`) VALUES
 ('欢迎使用闲置物品交易平台', '欢迎来到闲置物品交易平台！在这里您可以发布闲置物品、浏览和购买他人的闲置商品。请遵守平台规则，诚信交易。', 1, NULL, 1);
+
+
+-- ===================================================================
+-- 15. 私聊消息表 (chat_message)
+-- 说明: 存储用户之间的实时私聊消息，支持商品上下文关联
+-- ===================================================================
+DROP TABLE IF EXISTS `chat_message`;
+CREATE TABLE `chat_message` (
+    `id`              BIGINT        NOT NULL AUTO_INCREMENT  COMMENT '消息ID（主键）',
+    `sender_id`       BIGINT        NOT NULL                 COMMENT '发送者用户ID',
+    `receiver_id`     BIGINT        NOT NULL                 COMMENT '接收者用户ID',
+    `product_id`      BIGINT        DEFAULT NULL             COMMENT '关联商品ID（可为空，表示非商品场景聊天）',
+    `content`         TEXT          NOT NULL                 COMMENT '消息内容',
+    `is_read`         TINYINT       DEFAULT 0                COMMENT '已读状态: 0-未读, 1-已读',
+    `create_time`     DATETIME      DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_sender_id` (`sender_id`),
+    KEY `idx_receiver_id` (`receiver_id`),
+    KEY `idx_product_id` (`product_id`),
+    KEY `idx_conversation` (`sender_id`, `receiver_id`, `create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='私聊消息表';

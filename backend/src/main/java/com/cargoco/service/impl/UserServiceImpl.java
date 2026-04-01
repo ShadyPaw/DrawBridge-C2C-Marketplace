@@ -29,6 +29,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Map<String, Object> login(String username, String password) {
+        if (username != null) username = username.trim();
         User user = userMapper.findByUsername(username);
         if (user == null) {
             throw new RuntimeException("用户名不存在");
@@ -57,6 +58,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User register(User user) {
+        if (user.getUsername() != null) user.setUsername(user.getUsername().trim());
+        if (user.getPhone() != null && user.getPhone().trim().isEmpty()) {
+            user.setPhone(null);
+        }
+
         // 检查用户名是否存在
         if (userMapper.findByUsername(user.getUsername()) != null) {
             throw new RuntimeException("用户名已存在");
@@ -99,6 +105,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUser(User user) {
+        if (user.getPhone() != null && user.getPhone().trim().isEmpty()) {
+            user.setPhone(null);
+        }
         userMapper.update(user);
         return getUserById(user.getId());
     }

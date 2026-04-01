@@ -34,7 +34,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/category/tree",
                         "/api/banner/list",
                         "/api/notice/list",
-                        "/api/file/upload"
+                        "/api/file/upload",
+                        "/api/admin/init-data"
                 );
     }
 
