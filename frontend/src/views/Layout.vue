@@ -1,6 +1,7 @@
 <template>
   <div class="layout">
     <AppHeader />
+    <FloatingActionPanel />
     <main class="main-content">
       <router-view />
     </main>
@@ -11,4 +12,5 @@
 <script setup>
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '../components/AppFooter.vue'
+import FloatingActionPanel from '../components/FloatingActionPanel.vue'
 </script>

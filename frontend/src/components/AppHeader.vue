@@ -6,6 +6,9 @@
           <span class="notice-tag">系统公告</span>
           {{ currentNotice.title }}
         </span>
+        <button class="notice-close" type="button" @click="closeNotice" aria-label="关闭公告">
+          ×
+        </button>
       </div>
     </div>
 
@@ -35,21 +38,7 @@
         </div>
 
         <div class="header-actions">
-          <router-link to="/publish" class="publish-btn" v-if="userStore.isLoggedIn">
-            <el-button type="primary" round>
-              <el-icon><Plus /></el-icon>
-              发布闲置
-            </el-button>
-          </router-link>
-
           <template v-if="userStore.isLoggedIn">
-            <router-link to="/chat" class="action-link">
-              <el-badge :value="unreadTotal" :hidden="unreadTotal === 0">
-                <el-icon :size="21"><ChatDotRound /></el-icon>
-              </el-badge>
-              <span>消息</span>
-            </router-link>
-
             <router-link to="/my/orders" class="action-link">
               <el-badge :value="0" :hidden="true">
                 <el-icon :size="21"><Document /></el-icon>
@@ -105,38 +94,27 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
-import { chatApi, noticeApi } from '../api'
+import { noticeApi } from '../api'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const userStore = useUserStore()
 const searchKeyword = ref('')
-const unreadTotal = ref(0)
 const notices = ref([])
-let timer = null
+const noticeClosed = ref(false)
 
-const currentNotice = computed(() => notices.value[0] || null)
+const currentNotice = computed(() => {
+  if (noticeClosed.value) return null
+  return notices.value[0] || null
+})
 
 onMounted(() => {
   loadNotices()
-  if (userStore.isLoggedIn) {
-    fetchUnread()
-    timer = setInterval(fetchUnread, 30000)
-    userStore.connectWs()
-    window.addEventListener('chat-read', fetchUnread)
-    window.addEventListener('new-chat-message', fetchUnread)
-  }
-})
-
-onUnmounted(() => {
-  if (timer) clearInterval(timer)
-  window.removeEventListener('chat-read', fetchUnread)
-  window.removeEventListener('new-chat-message', fetchUnread)
-  userStore.disconnectWs()
+  if (userStore.isLoggedIn) userStore.connectWs()
 })
 
 async function loadNotices() {
@@ -148,12 +126,8 @@ async function loadNotices() {
   }
 }
 
-async function fetchUnread() {
-  if (!userStore.isLoggedIn) return
-  try {
-    const res = await chatApi.unreadCount()
-    unreadTotal.value = res.data || 0
-  } catch (e) {}
+function closeNotice() {
+  noticeClosed.value = true
 }
 
 function doSearch() {
@@ -182,9 +156,7 @@ function handleCommand(command) {
 
 <style scoped>
 .app-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  position: relative;
   background: #fff;
   color: var(--main-text-color);
   border-bottom: 1px solid rgba(17, 24, 39, 0.06);
@@ -201,6 +173,7 @@ function handleCommand(command) {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .notice-text {
@@ -221,6 +194,28 @@ function handleCommand(command) {
   flex-shrink: 0;
   color: #1c1c1e;
   font-weight: 600;
+}
+
+.notice-close {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #6b7280;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.notice-close:hover {
+  background: rgba(17, 24, 39, 0.06);
+  color: #1c1c1e;
 }
 
 .header-nav {
@@ -268,7 +263,7 @@ function handleCommand(command) {
 
 .search-shell {
   width: 100%;
-  max-width: 680px;
+  max-width: 820px;
 }
 
 .search-box {
@@ -329,29 +324,11 @@ function handleCommand(command) {
   color: #8e939c;
 }
 
-.publish-btn {
-  flex-shrink: 0;
-}
-
-.publish-btn :deep(.el-button) {
-  height: 44px;
-  padding: 0 18px;
-  border: 0;
-  border-radius: 22px;
-  background: #1c1c1e;
-  box-shadow: none;
-  font-weight: 600;
-}
-
-.publish-btn :deep(.el-button:hover) {
-  background: #2a2a2d;
-}
-
 .header-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 18px;
+  gap: 20px;
   flex-shrink: 0;
   min-width: fit-content;
 }
@@ -428,19 +405,11 @@ function handleCommand(command) {
     margin-left: auto;
   }
 
-  .publish-btn {
-    order: -1;
-  }
-
   .logo-text {
     display: none;
   }
 
   .username {
-    display: none;
-  }
-
-  .publish-btn span {
     display: none;
   }
 

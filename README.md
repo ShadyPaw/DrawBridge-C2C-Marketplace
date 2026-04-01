@@ -448,3 +448,19 @@ npm run dev
 ---
 
 > 📧 如有问题或建议，欢迎提 Issue 或 Pull Request！
+
+---
+
+## Current Iteration
+
+- Current version: `V1.5.0`
+- Updated on: `2026-04-02`
+
+### V1.5 (2026-04-02)
+
+- Refined the marketplace home and header UX with a cleaner top navigation, dynamic category naming, and an expanded integrated search bar.
+- Added a fixed right-side floating action panel with publish, message, feedback, support, and back-to-top actions.
+- Removed duplicated top-level entry points that overlapped with the floating panel, giving more space back to search.
+- Redesigned the message center with a cleaner conversation layout, improved empty states, refreshed message bubbles, and a more polished input area.
+- Fixed the floating message badge logic so the red dot only appears when unread messages actually exist.
+- Updated header behavior so the top search area no longer stays fixed while scrolling, and system notices can now be dismissed manually.
