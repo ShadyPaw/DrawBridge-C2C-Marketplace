@@ -1,4 +1,4 @@
-# 🛒 闲置集市 (CargoCO) - 二手闲置物品交易平台 V1
+# 🛒 DrawBridge - C2C-Marketplace
 
 > 一个基于 Spring Boot + Vue 3 的 C2C 二手物品交易系统，仿闲鱼设计，支持商品发布、订单交易、信用评价、后台管理等完整交易闭环。
 
