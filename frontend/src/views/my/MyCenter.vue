@@ -5,6 +5,10 @@
       <div class="stat-card"><div class="stat-number">{{ myProducts.length }}</div><div class="stat-label">发布的商品</div></div>
       <div class="stat-card"><div class="stat-number">{{ user?.creditScore || 100 }}</div><div class="stat-label">信用积分</div></div>
       <div class="stat-card"><div class="stat-number">{{ levelText }}</div><div class="stat-label">用户等级</div></div>
+      <div class="stat-card">
+        <div class="stat-number" :style="{ color: trustColor }">{{ trustScore }}%</div>
+        <div class="stat-label">信用度</div>
+      </div>
     </div>
     <el-divider />
     <h3>个人信息</h3>
@@ -32,6 +36,17 @@ const levelMap = { 1: '普通用户', 2: '信用良好', 3: '优质用户' }
 const levelText = computed(() => levelMap[user.value?.userLevel] || '普通用户')
 const genderMap = { 0: '未知', 1: '男', 2: '女' }
 const genderText = computed(() => genderMap[user.value?.gender ?? 0])
+
+// 信用度计算
+const trustScore = computed(() => {
+  if (!user.value?.riskScore) return 100
+  return Math.max(0, Math.min(100, Math.round((1 - user.value.riskScore) * 100)))
+})
+const trustColor = computed(() => {
+  if (trustScore.value >= 80) return '#67C23A'
+  if (trustScore.value >= 50) return 'var(--primary-color)'
+  return '#E6A23C'
+})
 
 onMounted(async () => {
   try {

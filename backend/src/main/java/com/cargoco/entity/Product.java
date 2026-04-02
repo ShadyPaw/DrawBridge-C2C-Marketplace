@@ -35,6 +35,7 @@ public class Product {
     private String sellerNickname;
     private String sellerAvatar;
     private Integer sellerCreditScore;
+    private Float sellerRiskScore;
     private String categoryName;
     private List<ProductImage> images;
     private String coverImage;

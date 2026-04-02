@@ -27,4 +27,9 @@ public class User {
     private Date createTime;
     private Date updateTime;
     private Integer deleted;
+
+    /**
+     * AI 风险评分 (不持久化到数据库)
+     */
+    private Float riskScore;
 }

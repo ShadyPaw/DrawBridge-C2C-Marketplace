@@ -20,10 +20,19 @@ import java.util.Map;
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    private UserMapper userMapper;
+    private JwtUtil jwtUtil;
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private com.cargoco.service.RiskInferenceService riskInferenceService;
+
+    @Autowired
+    private com.cargoco.mapper.ProductMapper productMapper;
+
+    @Autowired
+    private com.cargoco.mapper.ReportMapper reportMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -90,6 +99,10 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.findById(id);
         if (user != null) {
             user.setPassword(null);
+            // 实时计算该用户的风险分以供前端展示信任分
+            float productCount = (float) productMapper.findByUserId(id).size();
+            float reportCount = (float) reportMapper.countByTarget(id, 2);
+            user.setRiskScore(riskInferenceService.calculateUserRisk(user, productCount, reportCount));
         }
         return user;
     }

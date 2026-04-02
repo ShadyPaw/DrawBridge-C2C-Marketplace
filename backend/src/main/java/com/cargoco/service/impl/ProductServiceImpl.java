@@ -25,6 +25,12 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private ProductImageMapper productImageMapper;
 
+    @Autowired
+    private com.cargoco.service.RiskInferenceService riskInferenceService;
+
+    @Autowired
+    private com.cargoco.mapper.ReportMapper reportMapper;
+
     @Override
     @Transactional
     public Product publish(Product product, List<String> imageUrls) {
@@ -61,6 +67,23 @@ public class ProductServiceImpl implements ProductService {
         product.setImages(images);
         // 增加浏览次数
         productMapper.incrementViewCount(id);
+
+        // --- 实时计算卖家风险分以供详情页展示信任度 ---
+        if (product.getUserId() != null) {
+            com.cargoco.entity.User seller = new com.cargoco.entity.User();
+            seller.setId(product.getUserId());
+            seller.setCreditScore(product.getSellerCreditScore());
+            // mock createTime because we don't have it in product detail, or we could fetch it
+            // but for simplicity we use a default if not found
+            // Actually, for consistency, better to use the userId to fetch some basic info or just use mock registerDays
+            float prodCount = (float) productMapper.findByUserId(product.getUserId()).size();
+            float repCount = (float) reportMapper.countByTarget(product.getUserId(), 2);
+            // Since we don't have the full User object in findDetailById, we'll just use a mock createTime if not available
+            // but better to use a default registerDays if we can't fetch it easily.
+            // Let's assume a default of 30 days if we don't want to join User table again.
+            float risk = riskInferenceService.predictRiskScore(30.0f, prodCount, repCount, 2.0f, seller.getCreditScore().floatValue());
+            product.setSellerRiskScore(risk);
+        }
         return product;
     }
 

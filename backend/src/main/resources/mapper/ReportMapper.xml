@@ -5,6 +5,7 @@
     <resultMap id="BaseResultMap" type="com.cargoco.entity.Report">
         <id column="id" property="id"/>
         <result column="reporter_id" property="reporterId"/>
+        <result column="report_type" property="reportType"/>
         <result column="target_type" property="targetType"/>
         <result column="target_id" property="targetId"/>
         <result column="reason_type" property="reasonType"/>
@@ -29,8 +30,8 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO report (reporter_id, target_type, target_id, reason_type, reason_detail, evidence_urls)
-        VALUES (#{reporterId}, #{targetType}, #{targetId}, #{reasonType}, #{reasonDetail}, #{evidenceUrls})
+        INSERT INTO report (reporter_id, report_type, target_type, target_id, reason_type, reason_detail, evidence_urls)
+        VALUES (#{reporterId}, #{reportType}, #{targetType}, #{targetId}, #{reasonType}, #{reasonDetail}, #{evidenceUrls})
     </insert>
 
     <update id="update">
@@ -57,5 +58,9 @@
 
     <select id="countByStatus" resultType="java.lang.Long">
         SELECT COUNT(*) FROM report WHERE deleted = 0 AND handle_status = #{handleStatus}
+    </select>
+
+    <select id="countByTarget" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM report WHERE deleted = 0 AND target_id = #{targetId} AND target_type = #{targetType}
     </select>
 </mapper>

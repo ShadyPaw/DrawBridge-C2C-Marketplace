@@ -10,6 +10,8 @@ import java.util.Date;
 public class Report {
     private Long id;
     private Long reporterId;
+    /** 1: 交易举报, 2: 资料举报 */
+    private Integer reportType;
     private Integer targetType;
     private Long targetId;
     private Integer reasonType;

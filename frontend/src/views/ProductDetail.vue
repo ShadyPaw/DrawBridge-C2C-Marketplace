@@ -49,8 +49,16 @@
           </el-avatar>
           <div class="seller-detail">
             <div class="seller-name">{{ product.sellerNickname }}</div>
-            <div class="seller-credit">
-              信用积分: <span>{{ product.sellerCreditScore }}</span>
+            <div class="seller-trust-container">
+              <span class="seller-credit">信用分: {{ product.sellerCreditScore }}</span>
+              <el-divider direction="vertical" />
+              <el-tag 
+                :type="trustType" 
+                class="trust-tag"
+                size="small"
+              >
+                信用度: {{ trustScore }}%
+              </el-tag>
             </div>
           </div>
           <el-icon><ArrowRight /></el-icon>
@@ -68,6 +76,12 @@
           </el-button>
           <el-button type="primary" size="large" round @click="buyNow" :disabled="product.productStatus !== 1 || isOwner" class="buy-now-btn">
             {{ product.productStatus === 3 ? '已售出' : product.productStatus === 2 ? '已下架' : isOwner ? '自己的商品' : '立即购买' }}
+          </el-button>
+        </div>
+        
+        <div class="report-entry" v-if="!isOwner">
+          <el-button link @click="showReportDialog = true">
+            <el-icon><Warning /></el-icon> 举报此商品
           </el-button>
         </div>
       </div>
@@ -118,6 +132,9 @@
         <el-select v-model="selectedAddressId" placeholder="请选择收货地址" style="width: 100%">
           <el-option v-for="a in addresses" :key="a.id" :label="`${a.receiverName} ${a.province}${a.city}${a.district||''}${a.detailAddress}`" :value="a.id" />
         </el-select>
+        <div class="add-addr-link">
+          <el-button link @click="showAddressDialog = true">+ 使用新地址</el-button>
+        </div>
       </el-form-item>
       <el-form-item label="备注">
         <el-input v-model="orderRemark" type="textarea" placeholder="选填" :rows="2" />
@@ -128,14 +145,71 @@
       <el-button type="primary" @click="confirmBuy" :loading="buying">确认下单</el-button>
     </template>
   </el-dialog>
+
+  <!-- 新增地址弹窗 -->
+  <el-dialog v-model="showAddressDialog" title="添加收货地址" width="460px" append-to-body class="drawbridge-dialog">
+    <el-form ref="addrFormRef" :model="addrForm" :rules="addrRules" label-width="80px">
+      <el-form-item label="收货人" prop="receiverName">
+        <el-input v-model="addrForm.receiverName" placeholder="姓名" />
+      </el-form-item>
+      <el-form-item label="联系电话" prop="receiverPhone">
+        <el-input v-model="addrForm.receiverPhone" placeholder="手机号码" />
+      </el-form-item>
+      <el-row :gutter="10">
+        <el-col :span="12">
+          <el-form-item label="省份" prop="province">
+            <el-input v-model="addrForm.province" placeholder="省" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="城市" prop="city" label-width="50px">
+            <el-input v-model="addrForm.city" placeholder="市" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-form-item label="区/县">
+        <el-input v-model="addrForm.district" placeholder="区/县（选填）" />
+      </el-form-item>
+      <el-form-item label="详细地址" prop="detailAddress">
+        <el-input v-model="addrForm.detailAddress" type="textarea" :rows="2" placeholder="街道、楼牌号等" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showAddressDialog = false" round>取消</el-button>
+      <el-button class="save-addr-btn" @click="saveNewAddress" :loading="savingAddr" round>保存并使用</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- 举报弹窗 -->
+  <el-dialog v-model="showReportDialog" title="举报商品" width="420px" class="drawbridge-dialog">
+    <el-form label-position="top">
+      <el-form-item label="举报理由">
+        <el-select v-model="reportForm.reasonType" placeholder="请选择举报理由" style="width: 100%">
+          <el-option label="违禁物品" :value="1" />
+          <el-option label="虚假信息/诈骗" :value="2" />
+          <el-option label="售卖假货" :value="3" />
+          <el-option label="辱骂/不当言论" :value="4" />
+          <el-option label="其他" :value="5" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="详情描述">
+        <el-input v-model="reportForm.reasonDetail" type="textarea" :rows="3" placeholder="请提供更多证据或描述..." />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showReportDialog = false" round>取消</el-button>
+      <el-button type="primary" @click="submitReport" :loading="submittingReport" class="report-submit-btn">提交举报</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
-import { productApi, messageApi, favoriteApi, orderApi, addressApi } from '../api'
+import { productApi, messageApi, favoriteApi, orderApi, addressApi, reportApi } from '../api'
 import { ElMessage } from 'element-plus'
+import { reactive } from 'vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -151,6 +225,39 @@ const selectedAddressId = ref(null)
 const orderRemark = ref('')
 const buying = ref(false)
 
+// 新增地址相关
+const showAddressDialog = ref(false)
+const addrFormRef = ref()
+const savingAddr = ref(false)
+const addrForm = reactive({
+  receiverName: '',
+  receiverPhone: '',
+  province: '',
+  city: '',
+  district: '',
+  detailAddress: '',
+  isDefault: 0
+})
+
+// 举报相关
+const showReportDialog = ref(false)
+const submittingReport = ref(false)
+const reportForm = reactive({
+  reasonType: null,
+  reasonDetail: ''
+})
+
+const addrRules = {
+  receiverName: [{ required: true, message: '请输入收货人姓名', trigger: 'blur' }],
+  receiverPhone: [
+    { required: true, message: '请输入联系电话', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
+  ],
+  province: [{ required: true, message: '请输入省份', trigger: 'blur' }],
+  city: [{ required: true, message: '请输入城市', trigger: 'blur' }],
+  detailAddress: [{ required: true, message: '请输入详细地址', trigger: 'blur' }]
+}
+
 const currentImage = computed(() => {
   if (!product.value?.images?.length) return product.value?.coverImage || ''
   return product.value.images[currentIndex.value]?.imageUrl || ''
@@ -163,6 +270,17 @@ const qualityText = computed(() => qualityMap[product.value?.quality] || '其他
 const qualityType = computed(() => product.value?.quality <= 2 ? 'success' : 'info')
 const tradeModeMap = { 1: '邮寄', 2: '自提/面交', 3: '邮寄/自提均可' }
 const tradeModeText = computed(() => tradeModeMap[product.value?.tradeMode] || '邮寄')
+
+// 信用度计算
+const trustScore = computed(() => {
+  if (!product.value?.sellerRiskScore) return 100
+  return Math.max(0, Math.min(100, Math.round((1 - product.value.sellerRiskScore) * 100)))
+})
+const trustType = computed(() => {
+  if (trustScore.value >= 80) return 'success'
+  if (trustScore.value >= 50) return ''
+  return 'warning'
+})
 
 onMounted(() => { loadProduct(); loadMessages() })
 
@@ -242,6 +360,66 @@ async function confirmBuy() {
   finally { buying.value = false }
 }
 
+async function submitReport() {
+  if (!reportForm.reasonType) { ElMessage.warning('请选择举报理由'); return }
+  submittingReport.value = true
+  try {
+    await reportApi.submit({
+      reportType: 1, // 交易性举报
+      targetType: 1, // 举报商品
+      targetId: product.value.id,
+      reasonType: reportForm.reasonType,
+      reasonDetail: reportForm.reasonDetail
+    })
+    ElMessage.success('举报成功')
+    showReportDialog.value = false
+    reportForm.reasonType = null
+    reportForm.reasonDetail = ''
+  } catch (e) {
+    console.error('举报提交失败:', e)
+    ElMessage.error(e.response?.data?.message || '举报提交失败，请稍后重试')
+  } finally {
+    submittingReport.value = false
+  }
+}
+
+async function saveNewAddress() {
+  const valid = await addrFormRef.value.validate().catch(() => false)
+  if (!valid) return
+  
+  savingAddr.value = true
+  try {
+    const res = await addressApi.add(addrForm)
+    ElMessage.success('地址添加成功')
+    
+    // 重新加载地址列表
+    const addrRes = await addressApi.list()
+    addresses.value = addrRes.data || []
+    
+    // 自动选中新创建的地址 (假设后端返回的对象包含生成的ID，或者通过匹配找到最新的一条)
+    // 根据业务逻辑，通常后端返回的是创建成功的完整对象或ID
+    if (res.data && res.data.id) {
+      selectedAddressId.value = res.data.id
+    }
+    
+    showAddressDialog.value = false
+    // 重置表单
+    Object.assign(addrForm, {
+      receiverName: '',
+      receiverPhone: '',
+      province: '',
+      city: '',
+      district: '',
+      detailAddress: '',
+      isDefault: 0
+    })
+  } catch (e) {
+    console.error('添加地址失败:', e)
+  } finally {
+    savingAddr.value = false
+  }
+}
+
 function formatTime(time) {
   if (!time) return ''
   return new Date(time).toLocaleString('zh-CN')
@@ -268,10 +446,31 @@ function formatTime(time) {
 .desc-section p { font-size: 14px; color: var(--text-secondary); line-height: 1.8; white-space: pre-wrap; }
 .seller-section { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius-md); cursor: pointer; transition: background 0.2s; }
 .seller-section:hover { background: var(--bg-color); }
-.seller-detail { flex: 1; }
-.seller-name { font-size: 15px; font-weight: 500; }
-.seller-credit { font-size: 13px; color: var(--text-tertiary); margin-top: 2px; }
-.seller-credit span { color: var(--primary-color); font-weight: 600; }
+.seller-detail { flex: 1; overflow: hidden; }
+.seller-name { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+.seller-trust-container { display: flex; align-items: center; gap: 8px; }
+.seller-credit { font-size: 13px; color: var(--text-tertiary); }
+.trust-tag { border-radius: 20px !important; font-weight: 600; }
+.report-entry { text-align: right; margin-top: 16px; }
+.report-entry .el-button { color: var(--text-quaternary); font-size: 12px; }
+.report-entry .el-button:hover { color: var(--drawbridge-red); }
+
+.report-submit-btn {
+  width: 140px;
+  height: 44px;
+  border-radius: 20px !important;
+  background-color: var(--drawbridge-red) !important;
+  border-color: var(--drawbridge-red) !important;
+  color: #fff !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(235, 59, 62, 0.2);
+  transition: all 0.3s;
+}
+.report-submit-btn:hover {
+  background-color: #d63639 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(235, 59, 62, 0.3);
+}
 .action-buttons { display: flex; gap: 12px; }
 .action-buttons .el-button { flex: 1; height: 48px; font-size: 16px; }
 .buy-now-btn {
@@ -303,8 +502,37 @@ function formatTime(time) {
 .comment-content { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
 .reply-list { background: var(--bg-color); border-radius: 6px; padding: 10px 12px; margin-top: 8px; font-size: 13px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 6px; }
 .reply-name { color: var(--primary-color); font-weight: 500; }
-.buy-info { font-size: 15px; }
 .buy-price { margin-top: 8px; }
+
+.add-addr-link {
+  text-align: right;
+  margin-top: 4px;
+}
+.add-addr-link .el-button {
+  color: #666 !important;
+  font-size: 13px;
+  padding: 0;
+}
+.add-addr-link .el-button:hover {
+  color: #1C1C1E !important;
+}
+
+:deep(.drawbridge-dialog) {
+  border-radius: 20px !important;
+  overflow: hidden;
+}
+:deep(.drawbridge-dialog .el-dialog__header) {
+  padding-bottom: 0;
+}
+.save-addr-btn {
+  background-color: #1C1C1E !important;
+  border-color: #1C1C1E !important;
+  color: #ffffff !important;
+}
+.save-addr-btn:hover {
+  background-color: #333333 !important;
+  border-color: #333333 !important;
+}
 
 @media (max-width: 768px) {
   .detail-content { flex-direction: column; }

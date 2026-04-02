@@ -4,11 +4,15 @@ import com.cargoco.common.PageResult;
 import com.cargoco.common.Result;
 import com.cargoco.entity.*;
 import com.cargoco.service.*;
+import com.cargoco.vo.UserVO;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,6 +34,8 @@ public class AdminController {
     private NoticeService noticeService;
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private RiskInferenceService riskInferenceService;
     @Autowired
     private DataInitService dataInitService;
 
@@ -55,12 +61,39 @@ public class AdminController {
 
     // ==================== 用户管理 ====================
     @GetMapping("/user/list")
-    public Result<PageResult<User>> userList(
+    public Result<PageResult<UserVO>> userList(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        return Result.success(userService.getUserList(keyword, status, null, pageNum, pageSize));
+        PageResult<User> pageResult = userService.getUserList(keyword, status, null, pageNum, pageSize);
+        
+        List<UserVO> voList = new ArrayList<>();
+        long now = System.currentTimeMillis();
+        
+        for (User user : pageResult.getList()) {
+            UserVO vo = new UserVO();
+            BeanUtils.copyProperties(user, vo);
+            
+            // 聚合特征：注册天数
+            float registerDays = (float) ((now - user.getCreateTime().getTime()) / (1000 * 60 * 60 * 24));
+            // 聚合特征：发布商品数
+            float productCount = (float) productService.getByUserId(user.getId()).size();
+            // 聚合特征：被举报次数 (暂 Mock 处理。如有数据库映射可完善此处映射)
+            float reportCount = 0.0f; 
+            // 聚合特征：平均回复耗时 (Mock 为 2.0 小时)
+            float avgReplyTime = 2.0f;
+            // 聚合特征：信用分
+            float creditScore = user.getCreditScore().floatValue();
+            
+            // 调用 AI 推理服务
+            float score = riskInferenceService.predictRiskScore(registerDays, productCount, reportCount, avgReplyTime, creditScore);
+            vo.setRiskScore(score);
+            
+            voList.add(vo);
+        }
+        
+        return Result.success(new PageResult<>(pageResult.getTotal(), voList, pageResult.getPageNum(), pageResult.getPageSize()));
     }
 
     @PutMapping("/user/status/{id}")

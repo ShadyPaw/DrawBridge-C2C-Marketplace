@@ -12,4 +12,5 @@ public interface ReportMapper {
     int update(Report report);
     List<Report> findList(@Param("handleStatus") Integer handleStatus, @Param("targetType") Integer targetType);
     Long countByStatus(@Param("handleStatus") Integer handleStatus);
+    Long countByTarget(@Param("targetId") Long targetId, @Param("targetType") Integer targetType);
 }

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="chat-page container">
     <div class="chat-shell">
       <div class="chat-titlebar">
@@ -43,7 +43,35 @@
               <span class="chat-target-name">{{ currentTargetName }}</span>
               <span class="chat-target-subtitle">与对方继续这段交易沟通</span>
             </div>
+            <div class="chat-header-actions">
+              <el-button link @click="showReportDialog = true" class="report-header-btn">
+                <el-icon><Warning /></el-icon> 举报对方
+              </el-button>
+            </div>
           </div>
+
+          <!-- 聊天举报弹窗 -->
+          <el-dialog v-model="showReportDialog" title="举报聊天内容" width="420px" class="drawbridge-dialog">
+            <el-form label-position="top">
+              <el-form-item label="举报理由">
+                <el-select v-model="reportForm.reasonType" placeholder="如骚扰谩骂、垃圾广告等" style="width: 100%">
+                  <el-option label="言语骚扰/辱骂" :value="15" />
+                  <el-option label="广告推销/垃圾信息" :value="16" />
+                  <el-option label="诱导站外交易（离线支付等）" :value="17" />
+                  <el-option label="色情低俗" :value="18" />
+                  <el-option label="欺诈/虚假信息" :value="19" />
+                  <el-option label="其他违规内容" :value="20" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="详情描述">
+                <el-input v-model="reportForm.reasonDetail" type="textarea" :rows="3" placeholder="请详细说明违规情况，方便后台调取证据..." />
+              </el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button @click="showReportDialog = false" round>取消</el-button>
+              <el-button type="primary" @click="submitReport" :loading="submittingReport" class="report-submit-btn">立即提交</el-button>
+            </template>
+          </el-dialog>
 
           <div class="product-context" v-if="currentProduct" @click="goProduct">
             <img :src="currentProduct.coverImage || currentProduct.productCoverImage || ''" class="product-thumb" />
@@ -112,10 +140,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
-import { chatApi, productApi, userApi } from '../api'
+import { chatApi, productApi, userApi, reportApi } from '../api'
+import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
@@ -238,6 +267,38 @@ function sendMessage() {
 
   userStore.sendWsMessage(msgPayload)
   inputText.value = ''
+}
+
+// 举报相关
+const showReportDialog = ref(false)
+const submittingReport = ref(false)
+const reportForm = reactive({
+  reasonType: null,
+  reasonDetail: ''
+})
+
+async function submitReport() {
+  if (!reportForm.reasonType) { ElMessage.warning('请选择举报理由'); return }
+  submittingReport.value = true
+  try {
+    // 【双轨制风控】: 提交时携带 reportType: 3 代表聊天内容违规，后端物理跳过 AI 评分
+    await reportApi.submit({
+      reportType: 3, // 私信内容举报
+      targetType: 2, // 举报用户
+      targetId: currentTargetId.value,
+      reasonType: reportForm.reasonType,
+      reasonDetail: reportForm.reasonDetail
+    })
+    ElMessage.success('举报成功，后台将核实聊天记录')
+    showReportDialog.value = false
+    reportForm.reasonType = null
+    reportForm.reasonDetail = ''
+  } catch (e) {
+    console.error('举报提交失败:', e)
+    ElMessage.error(e.response?.data?.message || '举报提交失败，请稍后重试')
+  } finally {
+    submittingReport.value = false
+  }
 }
 
 async function switchContact(contact) {
@@ -444,7 +505,48 @@ function scrollToBottom() {
   border-bottom: 1px solid rgba(17, 24, 39, 0.05);
   display: flex;
   align-items: center;
+  justify-content: space-between;
   background: rgba(255, 255, 255, 0.68);
+}
+
+.chat-header-actions {
+  flex-shrink: 0;
+}
+
+.report-header-btn {
+  color: var(--text-quaternary) !important;
+  font-size: 13px;
+}
+
+.report-header-btn:hover {
+  color: var(--drawbridge-red) !important;
+}
+
+.report-submit-btn {
+  width: 140px;
+  height: 44px;
+  border-radius: 20px !important;
+  background-color: var(--drawbridge-red) !important;
+  border-color: var(--drawbridge-red) !important;
+  color: #fff !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(235, 59, 62, 0.2);
+  transition: all 0.3s;
+}
+
+.report-submit-btn:hover {
+  background-color: #d63639 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(235, 59, 62, 0.3);
+}
+
+:deep(.drawbridge-dialog) {
+  border-radius: 20px !important;
+  overflow: hidden;
+}
+
+:deep(.drawbridge-dialog .el-dialog__header) {
+  padding-bottom: 0;
 }
 
 .chat-target-info {
