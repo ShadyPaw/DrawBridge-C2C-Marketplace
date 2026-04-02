@@ -3,7 +3,6 @@
     <h2 class="page-title">个人中心</h2>
     <div class="stats-row">
       <div class="stat-card"><div class="stat-number">{{ myProducts.length }}</div><div class="stat-label">发布的商品</div></div>
-      <div class="stat-card"><div class="stat-number">{{ user?.creditScore || 100 }}</div><div class="stat-label">信用积分</div></div>
       <div class="stat-card"><div class="stat-number">{{ levelText }}</div><div class="stat-label">用户等级</div></div>
       <div class="stat-card">
         <div class="stat-number" :style="{ color: trustColor }">{{ trustScore }}%</div>

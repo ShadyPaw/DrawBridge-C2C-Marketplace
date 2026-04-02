@@ -4,8 +4,6 @@
       <el-avatar :size="80" :src="user.avatar || undefined">{{ user.nickname?.charAt(0) }}</el-avatar>
       <h2>{{ user.nickname }}</h2>
       <div class="profile-stats">
-        <span>信用积分: <b>{{ user.creditScore }}</b></span>
-        <el-divider direction="vertical" />
         <el-tag 
           :type="trustType" 
           size="small" 

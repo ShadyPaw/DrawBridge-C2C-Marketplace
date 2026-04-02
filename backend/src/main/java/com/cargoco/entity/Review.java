@@ -21,6 +21,11 @@ public class Review {
     private Date createTime;
     private Integer deleted;
 
+    /**
+     * 【权重预留】: 卖家是否按时发货 (由买家评价时勾选或系统判定)
+     */
+    private Integer onTimeDelivery;
+
     /** 非数据库字段 */
     private String fromUserNickname;
     private String fromUserAvatar;

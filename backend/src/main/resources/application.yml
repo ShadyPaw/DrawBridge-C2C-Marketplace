@@ -38,3 +38,10 @@ file:
 jwt:
   secret: CargoCO_SecretKey_2026_TradeSystem
   expiration: 86400000
+
+# 风控配置 (Risk Management Configuration)
+risk:
+  model:
+    # 自动熔断阈值: 当风险分数超过此值时，触发账号限制
+    suspend-threshold: 0.85
+

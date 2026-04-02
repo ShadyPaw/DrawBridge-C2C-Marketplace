@@ -98,7 +98,8 @@ public class RiskInferenceService {
         if (user == null || user.getCreateTime() == null) return 0.0f;
         float registerDays = (float) ((System.currentTimeMillis() - user.getCreateTime().getTime()) / (1000 * 60 * 60 * 24));
         float avgReplyTime = 2.0f; // Mock
-        float creditScore = user.getCreditScore() != null ? user.getCreditScore().floatValue() : 100.0f;
+        // 废除旧版信用分，张量输入硬编码为 100.0f 以保证模型维度稳定
+        float creditScore = 100.0f; 
         return predictRiskScore(registerDays, productCount, reportCount, avgReplyTime, creditScore);
     }
 

@@ -36,6 +36,9 @@ CREATE TABLE `user` (
     `create_time`     DATETIME      DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
     `update_time`     DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     `deleted`         TINYINT       DEFAULT 0                COMMENT '逻辑删除: 0-未删除, 1-已删除',
+    -- 【正向特征预留字段】
+    -- `positive_review_count` INT DEFAULT 0 COMMENT '累计好评数',
+    -- `on_time_delivery_count` INT DEFAULT 0 COMMENT '累计按时发货数',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_username` (`username`),
     UNIQUE KEY `uk_phone` (`phone`),

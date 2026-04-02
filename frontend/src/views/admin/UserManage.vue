@@ -7,7 +7,6 @@
       <el-table-column prop="username" label="用户名" width="120" />
       <el-table-column prop="nickname" label="昵称" width="120" />
       <el-table-column prop="phone" label="手机" width="130" />
-      <el-table-column prop="creditScore" label="信用分" width="80" />
       <el-table-column label="状态" width="80">
         <template #default="{ row }"><el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">{{ row.status === 1 ? '正常' : '禁用' }}</el-tag></template>
       </el-table-column>
@@ -31,7 +30,7 @@
           </el-popover>
         </template>
       </el-table-column>
-      <el-table-column prop="createTime" label="注册时间" width="170" />
+      <el-table-column prop="createTime" label="注册时间" width="200" />
       <el-table-column label="操作" width="120">
         <template #default="{ row }">
           <el-button v-if="row.status === 1" size="small" type="danger" @click="toggleStatus(row.id, 0)">禁用</el-button>

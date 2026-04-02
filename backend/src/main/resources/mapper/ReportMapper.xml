@@ -63,4 +63,16 @@
     <select id="countByTarget" resultType="java.lang.Long">
         SELECT COUNT(*) FROM report WHERE deleted = 0 AND target_id = #{targetId} AND target_type = #{targetType}
     </select>
+
+    <select id="countGlobalReports" resultType="java.lang.Long">
+        SELECT COUNT(*) 
+        FROM report r
+        LEFT JOIN product p ON (r.target_type = 1 AND r.target_id = p.id)
+        LEFT JOIN chat_message m ON (r.target_type = 3 AND r.target_id = m.id)
+        WHERE r.deleted = 0 AND (
+            (r.target_type = 2 AND r.target_id = #{userId}) OR
+            (r.target_type = 1 AND p.user_id = #{userId}) OR
+            (r.target_type = 3 AND m.sender_id = #{userId})
+        )
+    </select>
 </mapper>

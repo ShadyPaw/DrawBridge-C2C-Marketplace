@@ -5,7 +5,6 @@
         <el-avatar :size="64" :src="userStore.avatar || undefined">{{ userStore.nickname?.charAt(0) }}</el-avatar>
         <div class="user-meta">
           <div class="name">{{ userStore.nickname }}</div>
-          <div class="credit">信用积分: <span>{{ userStore.user?.creditScore || 100 }}</span></div>
         </div>
       </div>
       <el-menu :default-active="activeMenu" router>
@@ -40,8 +39,7 @@ const activeMenu = computed(() => route.path)
 .user-card { background: var(--bg-white); border-radius: var(--radius-lg); padding: 24px; text-align: center; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
 .user-meta { margin-top: 12px; }
 .user-meta .name { font-size: 16px; font-weight: 600; }
-.user-meta .credit { font-size: 13px; color: var(--text-tertiary); margin-top: 4px; }
-.user-meta .credit span { color: var(--primary-color); font-weight: 600; }
+.user-meta .name { font-size: 16px; font-weight: 600; }
 .my-sidebar :deep(.el-menu) { border: none; background: var(--bg-white); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
 .my-content { flex: 1; background: var(--bg-white); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm); }
 @media (max-width: 768px) { .my-layout { flex-direction: column; } .my-sidebar { width: 100%; } }

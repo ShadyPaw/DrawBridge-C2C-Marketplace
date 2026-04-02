@@ -1,4 +1,4 @@
-# 🛒 DrawBridge - C2C-Marketplace
+# 🛒 闲置集市 (CargoCO) - 二手闲置物品交易平台 V1
 
 > 一个基于 Spring Boot + Vue 3 的 C2C 二手物品交易系统，仿闲鱼设计，支持商品发布、订单交易、信用评价、后台管理等完整交易闭环。
 
@@ -433,19 +433,23 @@ npm run dev
 
 ## 📝 迭代日志 (Changelog)
 
-### V1.4 (2026-04-01)
-* **实时“已读/未读”双向通讯**：重构底层 WebSocket 协议，接入 `type` 鉴权帧，实现会话气泡毫秒级无刷新状态跳变与精确未读计数秒消。
-* **自动运营大屏**：全局 Navbar 下植入首页公告走马灯悬浮轮播系统，自动拦截展现后端设定的最新 5 条系统级广播。
-* **防御连环死锁**：根治不填手机号注册空串强推 MySQL 后引发的崩溃级账户幽灵态“不存在”连环判错死锁，加入安全的数据脱水机制。
-* **UI 及会话修复**：剥离重构了前端 WebSocket 全局独立广播域解耦，修缮全局 CSS `.price` 货币符号重复显示故障，并联通后端展示聊天上下文的真实商品售价。
+### V1.6 (2026-04-03)
+- **风控架构深度重塑 (AI Risk Overhaul)**：彻底废除旧版静态“信用积分”系统，全面接入基于 ONNX Runtime 的动态 AI 风险评估模型。
+- **配置外化与超参解耦**：将自动熔断阈值等关键业务参数从代码剥离至 `application.yml`，支持生产环境动态调优风险敏感度。
+- **全域负向行为聚合**：重构举报系统底层逻辑，自动聚合商品、用户、私聊场景违规数据，实现 360 度覆盖式风险特征采集。
+- **智能化自动化熔断**：上线高危风险账号自动锁定机制，并匹配下发系统级风控预警通知。
+- **张量伪装与平滑过渡**：实施物理级张量输入伪装，在不改变模型权重的前提下完成特征平滑迁移。
 
 ### V1.5 (2026-04-02)
-* **优化交易平台首页及顶栏 UX**：采用更清爽的顶部导航，支持分类名称动态显示，并扩大了集成搜索框的区域。
-* **新增右侧固定悬浮操作面板**：集成发布、消息、反馈、支持以及返回顶部等快捷功能。
-* **精简冗余交互入口**：移除与悬浮面板功能重叠的顶部重复入口，为搜索栏释放更多视觉空间。
-* **重构消息中心布局**：采用更简洁的会话界面，优化空白页（Empty States）表现，刷新消息气泡样式并精细化处理输入区域。
-* **修复消息悬浮角标逻辑**：校准未读数显示机制，确保仅在存在真实未读消息时激活红点提示。
-* **更新 Header 滚动行为**：顶部搜索区域调整为不随页面滚动固定；同步新增系统通知的手动关闭（Dismiss）功能。
+- **交互美学升级 (UX/UI Polish)**：重构首页导航与搜索逻辑，引入全局悬浮操作面板（发布、反馈、回顶）。
+- **私聊体验焕新**：全面优化消息中心布局，重绘气泡样式并打通商品上下文展示，修复未读数气泡误报。
+- **组件及性能修缮**：重写头部搜索栏滚动行为，支持系统公告的手动关闭，提升交互呼吸感。
+
+### V1.4 (2026-04-01)
+- **实时通讯重构**：接入基于 WebSocket 的 type 鉴权帧，实现毫秒级状态同步与精确消息未读计数。
+- **运营大屏上线**：首页植入公告走马灯系统，自动轮播后端设定的最新系统广播。
+- **稳定性修复**：解决手机号注册空串引发的账户幽灵态判错死锁，规范全局货币符号 `.price` 样式展示。
+
 ---
 
 ## 开源协议
@@ -457,3 +461,17 @@ npm run dev
 > 📧 如有问题或建议，欢迎提 Issue 或 Pull Request！
 
 ---
+
+## Current Iteration
+
+- Current version: `V1.5.0`
+- Updated on: `2026-04-02`
+
+### V1.5 (2026-04-02)
+
+- Refined the marketplace home and header UX with a cleaner top navigation, dynamic category naming, and an expanded integrated search bar.
+- Added a fixed right-side floating action panel with publish, message, feedback, support, and back-to-top actions.
+- Removed duplicated top-level entry points that overlapped with the floating panel, giving more space back to search.
+- Redesigned the message center with a cleaner conversation layout, improved empty states, refreshed message bubbles, and a more polished input area.
+- Fixed the floating message badge logic so the red dot only appears when unread messages actually exist.
+- Updated header behavior so the top search area no longer stays fixed while scrolling, and system notices can now be dismissed manually.

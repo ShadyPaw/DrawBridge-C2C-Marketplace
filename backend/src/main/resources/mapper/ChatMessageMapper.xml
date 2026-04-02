@@ -82,4 +82,7 @@
         SELECT COUNT(*) FROM chat_message WHERE receiver_id = #{userId} AND is_read = 0
     </select>
 
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM chat_message WHERE id = #{id}
+    </select>
 </mapper>

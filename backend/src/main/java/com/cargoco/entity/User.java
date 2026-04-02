@@ -22,6 +22,18 @@ public class User {
     private Integer userLevel;
     private Integer status;
     private Integer role;
+
+    /**
+     * 【正向特征预留】: 历史累计获得的好评总数
+     * 用于后期 AI 模型迭代，作为加分特征维度
+     */
+    private Integer positiveReviewCount;
+
+    /**
+     * 【正向特征预留】: 历史上按时发货/履约的累计次数
+     */
+    private Integer onTimeDeliveryCount;
+
     private Date lastLoginTime;
     private String lastLoginIp;
     private Date createTime;

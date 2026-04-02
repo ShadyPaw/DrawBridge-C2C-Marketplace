@@ -50,8 +50,6 @@
           <div class="seller-detail">
             <div class="seller-name">{{ product.sellerNickname }}</div>
             <div class="seller-trust-container">
-              <span class="seller-credit">信用分: {{ product.sellerCreditScore }}</span>
-              <el-divider direction="vertical" />
               <el-tag 
                 :type="trustType" 
                 class="trust-tag"

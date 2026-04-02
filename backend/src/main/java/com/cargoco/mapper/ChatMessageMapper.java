@@ -26,4 +26,7 @@ public interface ChatMessageMapper {
 
     /** 查询某用户的未读消息总数 */
     int countUnread(@Param("userId") Long userId);
+
+    /** 根据ID查询单条消息记录 */
+    ChatMessage findById(@Param("id") Long id);
 }
