@@ -81,13 +81,8 @@ public class AdminController {
             float productCount = (float) productService.getByUserId(user.getId()).size();
             // 聚合特征：被举报次数 (暂 Mock 处理。如有数据库映射可完善此处映射)
             float reportCount = 0.0f; 
-            // 聚合特征：平均回复耗时 (Mock 为 2.0 小时)
-            float avgReplyTime = 2.0f;
-            // 聚合特征：信用分
-            float creditScore = user.getCreditScore().floatValue();
-            
-            // 调用 AI 推理服务
-            float score = riskInferenceService.predictRiskScore(registerDays, productCount, reportCount, avgReplyTime, creditScore);
+            // 调用 AI 推理服务 (新版模型要求 4 维特征：[注册天数, 商品数, 举报数, 交易金额])
+            float score = riskInferenceService.predictRiskScore(registerDays, productCount, reportCount, 300.0f);
             vo.setRiskScore(score);
             
             voList.add(vo);

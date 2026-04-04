@@ -14,6 +14,7 @@ public interface UserMapper {
     int update(User user);
     int updatePassword(@Param("id") Long id, @Param("password") String password);
     int updateCreditScore(@Param("id") Long id, @Param("creditScore") Integer creditScore, @Param("userLevel") Integer userLevel);
+    int updateCreditScoreOnly(@Param("id") Long id, @Param("creditScore") Integer creditScore);
     int updateStatus(@Param("id") Long id, @Param("status") Integer status);
     int deleteById(Long id);
     List<User> findList(@Param("keyword") String keyword, @Param("status") Integer status, @Param("role") Integer role);

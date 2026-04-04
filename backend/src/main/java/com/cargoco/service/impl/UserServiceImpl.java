@@ -23,22 +23,15 @@ public class UserServiceImpl implements UserService {
     private JwtUtil jwtUtil;
 
     @Autowired
-    private com.cargoco.service.RiskInferenceService riskInferenceService;
-
-    @Autowired
-    private com.cargoco.mapper.ProductMapper productMapper;
-
-    @Autowired
-    private com.cargoco.mapper.ReportMapper reportMapper;
-
-    @Autowired
     private UserMapper userMapper;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public Map<String, Object> login(String username, String password) {
-        if (username != null) username = username.trim();
+        if (username != null) {
+            username = username.trim();
+        }
         User user = userMapper.findByUsername(username);
         if (user == null) {
             throw new RuntimeException("用户名不存在");
@@ -49,13 +42,12 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("密码错误");
         }
-        // 更新最后登录时间
+
         User updateUser = new User();
         updateUser.setId(user.getId());
         updateUser.setLastLoginTime(new Date());
         userMapper.update(updateUser);
 
-        // 生成Token
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
 
         Map<String, Object> result = new HashMap<>();
@@ -67,20 +59,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User register(User user) {
-        if (user.getUsername() != null) user.setUsername(user.getUsername().trim());
+        if (user.getUsername() != null) {
+            user.setUsername(user.getUsername().trim());
+        }
         if (user.getPhone() != null && user.getPhone().trim().isEmpty()) {
             user.setPhone(null);
         }
 
-        // 检查用户名是否存在
         if (userMapper.findByUsername(user.getUsername()) != null) {
             throw new RuntimeException("用户名已存在");
         }
-        // 检查手机号是否存在
         if (user.getPhone() != null && userMapper.findByPhone(user.getPhone()) != null) {
             throw new RuntimeException("手机号已被注册");
         }
-        // 加密密码
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setStatus(1);
         user.setRole(0);
@@ -99,10 +91,6 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.findById(id);
         if (user != null) {
             user.setPassword(null);
-            // 实时计算该用户的风险分以供前端展示信任分
-            float productCount = (float) productMapper.findByUserId(id).size();
-            float reportCount = (float) reportMapper.countByTarget(id, 2);
-            user.setRiskScore(riskInferenceService.calculateUserRisk(user, productCount, reportCount));
         }
         return user;
     }

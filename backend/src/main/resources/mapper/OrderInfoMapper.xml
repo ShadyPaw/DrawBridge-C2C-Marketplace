@@ -100,6 +100,13 @@
         ORDER BY o.create_time DESC
     </select>
 
+    <select id="countByUserId" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM order_info
+        WHERE deleted = 0
+          AND (buyer_id = #{userId} OR seller_id = #{userId})
+    </select>
+
     <select id="findAll" resultMap="DetailResultMap">
         <include refid="Detail_Select"/>
         WHERE o.deleted = 0

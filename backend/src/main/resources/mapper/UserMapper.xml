@@ -70,6 +70,10 @@
         UPDATE `user` SET credit_score = #{creditScore}, user_level = #{userLevel} WHERE id = #{id} AND deleted = 0
     </update>
 
+    <update id="updateCreditScoreOnly">
+        UPDATE `user` SET credit_score = #{creditScore} WHERE id = #{id} AND deleted = 0
+    </update>
+
     <update id="updateStatus">
         UPDATE `user` SET status = #{status} WHERE id = #{id} AND deleted = 0
     </update>

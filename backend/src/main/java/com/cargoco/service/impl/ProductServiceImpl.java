@@ -25,22 +25,15 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private ProductImageMapper productImageMapper;
 
-    @Autowired
-    private com.cargoco.service.RiskInferenceService riskInferenceService;
-
-    @Autowired
-    private com.cargoco.mapper.ReportMapper reportMapper;
-
     @Override
     @Transactional
     public Product publish(Product product, List<String> imageUrls) {
-        product.setProductStatus(1); // 在售
-        product.setAuditStatus(1);   // 临时逻辑：直接发布成功，跳过人工审核
+        product.setProductStatus(1);
+        product.setAuditStatus(1);
         product.setViewCount(0);
         product.setFavoriteCount(0);
         productMapper.insert(product);
 
-        // 保存商品图片
         if (imageUrls != null && !imageUrls.isEmpty()) {
             List<ProductImage> images = new ArrayList<>();
             for (int i = 0; i < imageUrls.size(); i++) {
@@ -62,37 +55,17 @@ public class ProductServiceImpl implements ProductService {
         if (product == null) {
             throw new RuntimeException("商品不存在");
         }
-        // 加载所有图片
         List<ProductImage> images = productImageMapper.findByProductId(id);
         product.setImages(images);
-        // 增加浏览次数
         productMapper.incrementViewCount(id);
-
-        // --- 实时计算卖家风险分以供详情页展示信任度 ---
-        if (product.getUserId() != null) {
-            com.cargoco.entity.User seller = new com.cargoco.entity.User();
-            seller.setId(product.getUserId());
-            seller.setCreditScore(product.getSellerCreditScore());
-            // mock createTime because we don't have it in product detail, or we could fetch it
-            // but for simplicity we use a default if not found
-            // Actually, for consistency, better to use the userId to fetch some basic info or just use mock registerDays
-            float prodCount = (float) productMapper.findByUserId(product.getUserId()).size();
-            float repCount = (float) reportMapper.countByTarget(product.getUserId(), 2);
-            // Since we don't have the full User object in findDetailById, we'll just use a mock createTime if not available
-            // but better to use a default registerDays if we can't fetch it easily.
-            // Let's assume a default of 30 days if we don't want to join User table again.
-            float risk = riskInferenceService.predictRiskScore(30.0f, prodCount, repCount, 2.0f, seller.getCreditScore().floatValue());
-            product.setSellerRiskScore(risk);
-        }
         return product;
     }
 
     @Override
     @Transactional
     public Product update(Product product, List<String> imageUrls) {
-        product.setAuditStatus(1); // 临时逻辑：编辑后直接跳过审核
+        product.setAuditStatus(1);
         productMapper.update(product);
-        // 如果传了新图片，更新图片
         if (imageUrls != null && !imageUrls.isEmpty()) {
             productImageMapper.deleteByProductId(product.getId());
             List<ProductImage> images = new ArrayList<>();
@@ -125,7 +98,6 @@ public class ProductServiceImpl implements ProductService {
     public void updateStatus(Long id, Integer status) {
         productMapper.updateStatus(id, status);
         if (status == 1) {
-            // 临时逻辑：重新上架时直接跳过审核
             productMapper.updateAudit(id, 1, "重新上架自动通过", null);
         }
     }
@@ -137,8 +109,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public PageResult<Product> getList(String keyword, Long categoryId, Integer productStatus, Integer auditStatus,
-                                        Long userId, BigDecimal minPrice, BigDecimal maxPrice, Integer quality,
-                                        String orderBy, Integer pageNum, Integer pageSize) {
+                                       Long userId, BigDecimal minPrice, BigDecimal maxPrice, Integer quality,
+                                       String orderBy, Integer pageNum, Integer pageSize) {
         PageHelper.startPage(pageNum, pageSize);
         List<Product> list = productMapper.findList(keyword, categoryId, productStatus, auditStatus, userId, minPrice, maxPrice, quality, orderBy);
         PageInfo<Product> pageInfo = new PageInfo<>(list);

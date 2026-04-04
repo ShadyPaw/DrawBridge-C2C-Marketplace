@@ -45,37 +45,26 @@ public class RiskInferenceService {
 
     /**
      * 预测交易风险评分 (违规概率)
-     * 
-     * @param registerDays 注册天数
-     * @param productCount 发布商品数
-     * @param reportCount 被举报次数
-     * @param avgReplyTime 平均回复耗时
-     * @param creditScore 信用分
-     * @return 风险概率值 (0.0 ~ 1.0, 越接近 1 则风险越高)
      */
-    public float predictRiskScore(float registerDays, float productCount, float reportCount, float avgReplyTime, float creditScore) {
+    public float predictRiskScore(float registerDays, float productCount, float reportCount, float transactionAmount) {
         if (session == null) {
             return 0.0f;
         }
 
         try {
-            // 构建输入矩阵，形状为 [1, 5]
+            // 特征清洗：标准化金额 (Mean=300, Std=150)
+            float scaledAmount = (transactionAmount - 300.0f) / 150.0f;
+
+            // 严格对齐模型 4 维张量：[注册天数, 商品数, 举报数, 缩放后的金额]
             float[][] inputData = new float[][]{{
                 registerDays,
                 productCount,
                 reportCount,
-                avgReplyTime,
-                creditScore
+                scaledAmount
             }};
 
-            // 将输入封装为 OnnxTensor
             try (OnnxTensor tensor = OnnxTensor.createTensor(env, inputData)) {
-                // 执行推理。注意：输入键名必须与训练导出时定义的 'float_input' 一致
                 try (OrtSession.Result result = session.run(Collections.singletonMap("float_input", tensor))) {
-                    
-                    // 解析输出层
-                    // XGBoost 输出通常是 [label, probabilities]
-                    // 根据训练结果提取违规概率 (对应 is_violation=1 的得分，通常在 probabilities 索引为 1 的位置)
                     float[][] outputProbs = (float[][]) result.get(1).getValue();
                     return outputProbs[0][1];
                 }
@@ -88,19 +77,12 @@ public class RiskInferenceService {
 
     /**
      * 辅助方法：为指定用户计算 AI 风险分
-     * 
-     * @param user 用户对象
-     * @param productCount 发布商品数
-     * @param reportCount 被举报次数
-     * @return 风险评分 (0.0 ~ 1.0)
      */
     public float calculateUserRisk(com.cargoco.entity.User user, float productCount, float reportCount) {
         if (user == null || user.getCreateTime() == null) return 0.0f;
         float registerDays = (float) ((System.currentTimeMillis() - user.getCreateTime().getTime()) / (1000 * 60 * 60 * 24));
-        float avgReplyTime = 2.0f; // Mock
-        // 废除旧版信用分，张量输入硬编码为 100.0f 以保证模型维度稳定
-        float creditScore = 100.0f; 
-        return predictRiskScore(registerDays, productCount, reportCount, avgReplyTime, creditScore);
+        // 普适性风险评估，交易金额取历史均值 300.0f (标准化后为 0.0)
+        return predictRiskScore(registerDays, productCount, reportCount, 300.0f);
     }
 
     /**

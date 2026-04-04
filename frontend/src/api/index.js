@@ -112,6 +112,11 @@ export const adminApi = {
   initData: () => request.post('/api/admin/init-data'),
 }
 
+// ==================== 交易风控接口 ====================
+export const transactionApi = {
+  verify: (data) => request.post('/api/transaction/verify', data),
+}
+
 // ==================== 私聊接口 ====================
 export const chatApi = {
   history: (params) => request.get('/api/chat/history', { params }),

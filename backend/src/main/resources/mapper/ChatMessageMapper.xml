@@ -85,4 +85,29 @@
     <select id="findById" resultMap="BaseResultMap">
         SELECT * FROM chat_message WHERE id = #{id}
     </select>
+
+    <select id="findAverageReplyHoursByUserId" resultType="java.lang.Float">
+        SELECT AVG(
+            TIMESTAMPDIFF(
+                SECOND,
+                inbound.create_time,
+                (
+                    SELECT MIN(outbound.create_time)
+                    FROM chat_message outbound
+                    WHERE outbound.sender_id = #{userId}
+                      AND outbound.receiver_id = inbound.sender_id
+                      AND outbound.create_time > inbound.create_time
+                )
+            ) / 3600.0
+        )
+        FROM chat_message inbound
+        WHERE inbound.receiver_id = #{userId}
+          AND EXISTS (
+            SELECT 1
+            FROM chat_message outbound
+            WHERE outbound.sender_id = #{userId}
+              AND outbound.receiver_id = inbound.sender_id
+              AND outbound.create_time > inbound.create_time
+          )
+    </select>
 </mapper>

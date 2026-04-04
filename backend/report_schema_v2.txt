@@ -1,0 +1,14 @@
+﻿Field	Type	Null	Key	Default	Extra
+id	bigint	NO	PRI	NULL	auto_increment
+reporter_id	bigint	NO	MUL	NULL	
+target_type	tinyint	NO	MUL	NULL	
+target_id	bigint	NO		NULL	
+reason_type	tinyint	YES		1	
+reason_detail	text	YES		NULL	
+evidence_urls	varchar(2000)	YES		NULL	
+handle_status	tinyint	YES	MUL	0	
+handle_result	varchar(500)	YES		NULL	
+handle_user_id	bigint	YES		NULL	
+handle_time	datetime	YES		NULL	
+create_time	datetime	YES		CURRENT_TIMESTAMP	DEFAULT_GENERATED
+deleted	tinyint	YES		0	

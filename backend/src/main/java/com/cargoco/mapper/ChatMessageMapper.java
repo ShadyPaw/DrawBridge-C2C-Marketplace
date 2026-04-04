@@ -29,4 +29,7 @@ public interface ChatMessageMapper {
 
     /** 根据ID查询单条消息记录 */
     ChatMessage findById(@Param("id") Long id);
+
+    /** 统计用户平均回复耗时，单位小时 */
+    Float findAverageReplyHoursByUserId(@Param("userId") Long userId);
 }

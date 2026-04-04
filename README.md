@@ -433,6 +433,13 @@ npm run dev
 
 ## 📝 迭代日志 (Changelog)
 
+### V1.7 (2026-04-04)
+- **双向 AI 风控体系 (Bi-directional Risk Control)**：从单向防护升级为双向风控模型，同时校验买家与卖家的信用状态。
+- **硬性规则链调度**：确立了“买家黑名单 -> 买家灰度限额 -> 卖家反诈提醒”的串行评估逻辑，通过 403 和 409 状态码实现物理阻断与风险告知。
+- **算力优化架构**：买家执行实时 ONNX 特征重算，卖家执行静态信用分透传，兼顾安全与高并发性能。
+- **多态风控拦截 UI**：在前端下单链路植入多级拦截窗，支持强制阻断与风险确认（Continue/Cancel）的双重交互。
+- **集成测试加固**：重构 Controller 测试套件，通过 Mock 层完整覆盖四类风控规则，保障核心逻辑的长期稳定性。
+
 ### V1.6 (2026-04-03)
 - **风控架构深度重塑 (AI Risk Overhaul)**：彻底废除旧版静态“信用积分”系统，全面接入基于 ONNX Runtime 的动态 AI 风险评估模型。
 - **配置外化与超参解耦**：将自动熔断阈值等关键业务参数从代码剥离至 `application.yml`，支持生产环境动态调优风险敏感度。
@@ -464,14 +471,12 @@ npm run dev
 
 ## Current Iteration
 
-- Current version: `V1.5.0`
-- Updated on: `2026-04-02`
+- Current version: `V1.7.0`
+- Updated on: `2026-04-04`
 
-### V1.5 (2026-04-02)
-
-- Refined the marketplace home and header UX with a cleaner top navigation, dynamic category naming, and an expanded integrated search bar.
-- Added a fixed right-side floating action panel with publish, message, feedback, support, and back-to-top actions.
-- Removed duplicated top-level entry points that overlapped with the floating panel, giving more space back to search.
-- Redesigned the message center with a cleaner conversation layout, improved empty states, refreshed message bubbles, and a more polished input area.
-- Fixed the floating message badge logic so the red dot only appears when unread messages actually exist.
-- Updated header behavior so the top search area no longer stays fixed while scrolling, and system notices can now be dismissed manually.
+### V1.7 (2026-04-04)
+- Implemented a comprehensive bi-directional AI risk control system that evaluates both buyer and seller credibility during checkout.
+- Enforced a strict rule-chain: Buyer Blacklist (Score < 60) -> Amount Limit (Score < 80 and > 500) -> Seller High Risk (Score < 60).
+- Optimized performance by limiting real-time ONNX inference to the buyer, while using static database scores for the seller.
+- Integrated a multi-state intercept UI in `ProductDetail.vue` that distinguishes between hard blocks (403) and user-confirmable warnings (409).
+- Refactored integration tests using `@MockBean` and JWT headers to provide complete coverage for all risk scenarios.

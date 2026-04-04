@@ -68,13 +68,8 @@ public class ReportServiceImpl implements ReportService {
                 float productCount = (float) productService.getByUserId(targetUserId).size();
                 // 3. 全域举报总数 (来自用户页、商品页、私聊界面的全量聚合)
                 float reportCount = reportMapper.countGlobalReports(targetUserId).floatValue(); 
-                // 4. 平均回复耗时 (Mock)
-                float avgReplyTime = 2.0f; 
-                // 5. 张量伪装：硬编码旧版信用分为 100.0f 以适配模型输入层
-                float creditScore = 100.0f;
-
-                // 执行实时 AI 风险推理
-                float newRiskScore = riskInferenceService.predictRiskScore(registerDays, productCount, reportCount, avgReplyTime, creditScore);
+                // 执行实时 AI 风险推理 (新版模型要求 4 维特征：[注册天数, 商品数, 举报数, 交易金额])
+                float newRiskScore = riskInferenceService.predictRiskScore(registerDays, productCount, reportCount, 300.0f);
                 
                 // 更新用户的 AI 风险分 (非持久化到 User 表，通常在查询时注入或实时计算)
                 // 这里我们根据风险阈值直接采取自动化熔断措施
